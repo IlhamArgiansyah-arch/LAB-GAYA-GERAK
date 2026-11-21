@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Gaya & Gerak — Simulasi Konsep Newton</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3efe6; --paper:#fffdf8; --ink:#18202d; --muted:#5b6474; --line:#e2dccd; --soft:#f7f3ea;
+  --F:#e03b3b; --V:#2367e8; --A:#12965a; --P:#7c4dcc; --warm:#f2a93b;
+  --ok:#14915a; --bad:#d23b3b; --mid:#d9901a; --gray:#8a93a3;
+  --r:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+header.top{background:linear-gradient(135deg,#17243a 0%,#1f3556 55%,#2b4a6e 100%);color:#fff;position:relative;overflow:hidden}
+header.top .wrap{padding-top:34px;padding-bottom:26px}
+header.top h1{margin:0 0 6px;font-size:clamp(26px,3.6vw,40px);letter-spacing:-.02em;font-weight:800}
+header.top p{margin:0;max-width:760px;color:#c9d6ea}
+header.top .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:14px;color:#dfe8f5}
+.lg{display:inline-flex;align-items:center;gap:8px}
+.lg i{display:inline-block;width:26px;height:4px;border-radius:2px;position:relative}
+.lg i:after{content:"";position:absolute;right:-6px;top:-4px;border-left:8px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+#hdrArt{position:absolute;right:-20px;top:0;height:100%;opacity:.9;pointer-events:none}
+nav.steps{position:sticky;top:0;z-index:20;background:rgba(243,239,230,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav.steps .wrap{display:flex;gap:8px;padding:10px 20px;overflow-x:auto;scrollbar-width:none}
+nav.steps a{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:600;font-size:14px;border:1px solid transparent;white-space:nowrap}
+nav.steps a b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#e5dfd1;color:var(--ink);font-size:13px}
+nav.steps a.on{background:var(--paper);color:var(--ink);border-color:var(--line);box-shadow:0 2px 8px rgba(30,30,20,.06)}
+nav.steps a.on b{background:var(--ink);color:#fff}
+nav.steps a.done b{background:var(--ok);color:#fff}
+section.stage{display:none;padding-top:26px}
+section.stage.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stage-head{display:flex;gap:18px;align-items:flex-start;margin-bottom:18px}
+.stage-num{flex:0 0 auto;width:54px;height:54px;border-radius:14px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:22px}
+.stage-head h2{margin:2px 0 4px;font-size:clamp(22px,2.6vw,30px);letter-spacing:-.015em}
+.stage-head p{margin:0;color:var(--muted);max-width:820px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:18px 0;box-shadow:0 1px 0 rgba(0,0,0,.02),0 8px 24px -16px rgba(40,30,10,.18)}
+.card h3{margin:0 0 4px;font-size:19px;letter-spacing:-.01em}
+.card h3 .k{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.card > p.lead{margin:0 0 14px;color:var(--muted)}
+canvas{display:block;width:100%;height:auto;border-radius:12px;background:#ddd;touch-action:none}
+.cv-frame{position:relative;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-v{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1fr);gap:16px}
+.grid-fbd{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid2,.grid-v,.grid-fbd{grid-template-columns:1fr}#hdrArt{display:none}}
+button,.btn{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+button:hover{border-color:#c9c1ad;transform:translateY(-1px)}
+button.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+button.pri:hover{background:#2a3446}
+button.on{background:#1f2a3c;color:#fff;border-color:#1f2a3c}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+button.F.on{background:var(--F);border-color:var(--F)}
+button.V.on{background:var(--V);border-color:var(--V)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+label.ck{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer;user-select:none}
+input[type=range]{accent-color:var(--ink);width:160px}
+.ctl{display:inline-flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);background:var(--soft);padding:6px 12px;border-radius:10px}
+.ctl output{font-family:"JetBrains Mono",monospace;color:var(--ink);font-weight:600;min-width:64px}
+textarea,select,input[type=text],input[type=date],input[type=number]{font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);width:100%}
+textarea{min-height:84px;resize:vertical}
+.note{background:#fff7e3;border:1px solid #f1dfae;border-radius:12px;padding:12px 14px;font-size:14.5px;color:#5c4a1c}
+.note.blue{background:#eaf2ff;border-color:#c9dbfb;color:#1d3a6b}
+.note.green{background:#e8f6ee;border-color:#bfe5cf;color:#14492e}
+.note.red{background:#fdeceb;border-color:#f4c8c5;color:#6d1f1b}
+.mono{font-family:"JetBrains Mono",monospace}
+.readout{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.readout div{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--muted)}
+.readout b{display:block;font-family:"JetBrains Mono",monospace;color:var(--ink);font-size:16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700}
+.c-paham{background:#dff3e8;color:#0f6b40}.c-menebak{background:#fdf0d4;color:#8a5a00}.c-tidaktahu{background:#eceef2;color:#4a5262}.c-miskonsepsi{background:#fde1df;color:#a32620}
+details.teacher{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+details.teacher summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+/* quiz */
+.q{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;background:#fff}
+.q .qt{font-weight:600;margin-bottom:10px}
+.q .qt span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;font-size:13px;margin-right:8px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:.12s;background:#fff}
+.opt:hover{border-color:#bfb6a0}
+.opt.sel{border-color:var(--ink);background:#f2f4f8;box-shadow:inset 0 0 0 1px var(--ink)}
+.opt b{flex:0 0 auto;width:24px;height:24px;border-radius:6px;display:grid;place-items:center;background:#ece7db;font-size:13px}
+.opt.sel b{background:var(--ink);color:#fff}
+.opt.right{border-color:var(--ok);background:#ecf8f1}
+.opt.wrong{border-color:var(--bad);background:#fdeeed}
+.cri{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
+.cri button{padding:6px 10px;font-size:12.5px}
+.cri button.on{background:#3b4a63;border-color:#3b4a63}
+/* POE gate */
+.gate{position:relative}
+.gate.locked > .gate-body{filter:blur(3px) grayscale(.4);pointer-events:none;user-select:none;opacity:.6}
+.gate .gate-msg{display:none}
+.gate.locked .gate-msg{display:flex;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:20px}
+.gate-msg .box{background:var(--paper);border:1px solid var(--line);padding:18px 22px;border-radius:14px;box-shadow:0 20px 40px -20px rgba(0,0,0,.35);max-width:420px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
+table.t th{color:var(--muted);font-weight:600;font-size:13px}
+table.t td.n{font-family:"JetBrains Mono",monospace}
+.concepts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:860px){.concepts{grid-template-columns:1fr}}
+.concept{border-radius:14px;padding:16px;border:1px solid var(--line);background:#fff;position:relative;overflow:hidden}
+.concept:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+.concept.v:before{background:var(--V)}.concept.a:before{background:var(--A)}.concept.f:before{background:var(--F)}
+.concept h4{margin:0 0 6px;font-size:17px}
+.concept .tag{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.law{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media (max-width:860px){.law{grid-template-columns:1fr}}
+.law div{background:#18202d;color:#e9eef7;border-radius:14px;padding:16px}
+.law b{color:#fff}
+.law .eq{font-family:"JetBrains Mono",monospace;font-size:20px;margin:6px 0;color:#ffd58a}
+.fl{display:grid;gap:8px}
+.fitem{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+.fitem label{display:flex;gap:10px;align-items:center;cursor:pointer;font-weight:600;font-size:14.5px}
+.fitem .fb{font-size:13.5px;margin-top:6px;display:none}
+.fitem.good{border-color:#9fd8b8;background:#f1faf5}.fitem.badx{border-color:#f0b6b2;background:#fdf3f2}.fitem.info{border-color:#ead39a;background:#fffaee}
+.fitem.good .fb,.fitem.badx .fb,.fitem.info .fb{display:block}
+.pi-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:700px){.pi-cards{grid-template-columns:repeat(2,1fr)}}
+.pcard{border-radius:14px;padding:12px;border:2px solid transparent;cursor:pointer;color:#fff;font-weight:600;font-size:14px;min-height:96px;display:flex;flex-direction:column;gap:6px;transition:.15s;box-shadow:0 6px 14px -8px rgba(0,0,0,.4)}
+.pcard .L{font-size:26px;font-weight:800;line-height:1}
+.pcard:hover{transform:translateY(-2px)}
+.pcard.sel{outline:3px solid var(--ink);outline-offset:2px}
+.pcard.A{background:linear-gradient(160deg,#e45656,#b52c2c)}.pcard.B{background:linear-gradient(160deg,#3d82f0,#1f55c2)}
+.pcard.C{background:linear-gradient(160deg,#2fae6f,#147a48)}.pcard.D{background:linear-gradient(160deg,#f2b33d,#c9850c)}
+.pcard.dim{opacity:.35}
+.pcard.ans{outline:3px solid #0d6b3e;outline-offset:2px}
+.tally{display:grid;grid-template-columns:auto repeat(4,1fr);gap:6px;align-items:center;font-size:13.5px}
+.tally input{padding:6px 8px;text-align:center}
+.bars{display:grid;gap:8px}
+.bar{display:flex;height:26px;border-radius:8px;overflow:hidden;background:#eee;font-size:12px;font-weight:700;color:#fff}
+.bar span{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.pi-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pi-tabs button{font-size:13.5px}
+.pi-step{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:12px 0 8px}
+.pi-step .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#e5dfd1;color:var(--ink);font-weight:700;font-size:12px}
+.pi-step .dot.on{background:var(--ink);color:#fff}
+.timer{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:600}
+.callout{margin-top:10px;padding:12px 14px;border-radius:12px;background:#18202d;color:#e8eef8;font-size:14.5px;display:none}
+.callout.on{display:block;animation:fade .3s}
+.callout b{color:#ffd58a}
+.summary-list{margin:8px 0 0;padding-left:18px;font-size:14.5px}
+footer{color:var(--muted);font-size:13px;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
+footer a{color:inherit}
+.kbd{font-family:"JetBrains Mono",monospace;font-size:12px;background:#ece7db;border-radius:5px;padding:1px 6px}
+.next{display:flex;justify-content:flex-end;margin-top:8px}
+.tagline{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tagline button{font-size:13px;padding:7px 11px}
+.tagline button .cnt{font-family:"JetBrains Mono",monospace;background:#ece7db;border-radius:6px;padding:0 6px;color:var(--ink)}
+</style>
+</head>
+<body>
+<header class="top">
+  <canvas id="hdrArt" width="10" height="10" style="background:transparent;width:auto"></canvas>
+  <div class="wrap">
+    <h1>Lab Gaya &amp; Gerak</h1>
+    <p>Simulasi lima tahap pembelajaran konseptual untuk meluruskan miskonsepsi gaya dan gerak: dari mengungkap gagasan awal, konflik kognitif lewat POE, rekonstruksi Hukum Newton, penerapan, hingga refleksi.</p>
+    <div class="legend">
+      <span class="lg" style="color:#ff7b7b"><i style="background:#ff7b7b"></i>Gaya (F)</span>
+      <span class="lg" style="color:#7fb0ff"><i style="background:#7fb0ff"></i>Kecepatan (v)</span>
+      <span class="lg" style="color:#5fd69c"><i style="background:#5fd69c"></i>Percepatan (a)</span>
+    </div>
+  </div>
+</header>
+<nav class="steps"><div class="wrap" id="stepNav">
+  <a href="#tahap-1" data-s="1"><b>1</b>Orientasi</a>
+  <a href="#tahap-2" data-s="2"><b>2</b>Konflik Kognitif (POE)</a>
+  <a href="#tahap-3" data-s="3"><b>3</b>Rekonstruksi Konsep</a>
+  <a href="#tahap-4" data-s="4"><b>4</b>Penerapan</a>
+  <a href="#tahap-5" data-s="5"><b>5</b>Refleksi &amp; Evaluasi</a>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ===================== TAHAP 1 ===================== -->
+<section class="stage" id="tahap-1" data-s="1">
+  <div class="stage-head"><div class="stage-num">1</div><div>
+    <h2>Orientasi dan pengungkapan konsepsi awal</h2>
+    <p>Tidak ada jawaban benar atau salah di tahap ini. Gambarlah apa yang benar-benar kamu pikirkan, karena gambar ini akan kamu bandingkan lagi nanti.</p>
+  </div></div>
+
+  <div class="card">
+    <h3><span class="k">Kegiatan 1.1</span>Gambar panah gaya dan kecepatan pada bola</h3>
+    <p class="lead">Bola dilempar vertikal ke atas lalu ditangkap kembali. Ketiga gambar bola menunjukkan saat bola naik, di puncak, dan saat turun. Tarik dari bola ke arah mana pun untuk membuat panah. Ketuk bola tanpa menarik untuk menandai “nol”.</p>
+    <div class="cv-frame"><canvas id="cvPre"></canvas></div>
+    <div class="row">
+      <div class="seg" id="preMode">
+        <button class="F on" data-m="F">✏️ Panah gaya (merah)</button>
+        <button class="V" data-m="V">✏️ Panah kecepatan (biru)</button>
+        <button data-m="E">🧽 Hapus per bola</button>
+      </div>
+      <button id="preClear">Hapus semua</button>
+      <button class="pri" id="preSave">Simpan gambarku</button>
+    </div>
+    <div id="preDesc" class="note blue" style="margin-top:12px;display:none"></div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">Kegiatan 1.2</span>Tes diagnostik lima butir dengan CRI</h3>
+    <p class="lead">Butir diadaptasi dari ide Force Concept Inventory (Hestenes, Wells, &amp; Swackhamer, 1992). Setelah memilih jawaban, pilih juga seberapa yakin kamu (Certainty of Response Index, skala 0–5). Kunci jawaban baru dibuka di Tahap 5.</p>
+    <div id="quizPre"></div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">Kegiatan 1.3</span>Bandingkan gambar dalam kelompok kecil</h3>
+    <p class="lead">Guru mencatat ragam gagasan yang muncul tanpa menilai benar atau salah. Ketuk sebuah gagasan setiap kali gagasan itu muncul di kelompok. Hasilnya menjadi peta konsepsi kelas.</p>
+    <div class="tagline" id="ideaTags"></div>
+    <div class="row"><input type="text" id="ideaNew" placeholder="Tambah gagasan lain yang muncul…" style="max-width:420px"><button id="ideaAdd">Tambah</button><button id="ideaReset">Nol-kan hitungan</button></div>
+    <div id="ideaBars" class="bars" style="margin-top:14px"></div>
+    <details class="teacher"><summary>Catatan untuk guru</summary>
+      <p style="font-size:14.5px;color:var(--muted)">Tujuan tahap ini adalah membuat siswa sadar akan konsepsinya sendiri dan memberi guru peta miskonsepsi kelas. Gagasan yang sering muncul: gaya “dorongan” yang terbawa bola dan habis di puncak (gagasan impetus), gaya selalu searah gerak, dan “di puncak tidak ada gaya karena bola diam”. Jangan koreksi dulu; konflik kognitif disiapkan di Tahap 2.</p>
+    </details>
+  </div>
+  <div class="next"><button class="pri" onclick="go(2)">Lanjut ke Tahap 2 →</button></div>
+</section>
+
+<!-- ===================== TAHAP 2 ===================== -->
+<section class="stage" id="tahap-2" data-s="2">
+  <div class="stage-head"><div class="stage-num">2</div><div>
+    <h2>Konflik kognitif melalui POE (Prediksi – Observasi – Eksplanasi)</h2>
+    <p>Tulis prediksi dulu dan kunci. Pengamatan baru terbuka setelah prediksi dikunci, supaya kamu bisa jujur membandingkan dugaan dengan bukti.</p>
+  </div></div>
+
+  <div class="card">
+    <h3><span class="k">P — Prediksi (tertulis)</span>Apa dugaanmu?</h3>
+    <div class="grid2">
+      <div>
+        <p style="margin:0 0 8px;font-weight:600">1. “Jika di puncak tidak ada gaya, apa yang akan terjadi pada bola?”</p>
+        <textarea id="pred1" placeholder="Tulis prediksimu…"></textarea>
+        <p style="margin:16px 0 8px;font-weight:600">Alasanmu:</p>
+        <textarea id="pred1b" placeholder="Mengapa kamu berpikir begitu?"></textarea>
+      </div>
+      <div>
+        <p style="margin:0 0 8px;font-weight:600">2. Gambar grafik kecepatan terhadap waktu (v–t) dari bola dilempar sampai ditangkap kembali.</p>
+        <div class="cv-frame"><canvas id="cvPred"></canvas></div>
+        <div class="row" style="margin-top:8px">
+          <span style="font-size:13px;color:var(--muted)">Gambar dengan jari/mouse, atau pilih bentuk:</span>
+          <button data-ps="0" class="ps">A</button><button data-ps="1" class="ps">B</button><button data-ps="2" class="ps">C</button><button data-ps="3" class="ps">D</button>
+          <button id="predClr">Hapus</button>
+        </div>
+      </div>
+    </div>
+    <div class="row"><button class="pri" id="predLock">🔒 Kunci prediksi</button><span id="predStatus" style="font-size:14px;color:var(--muted)"></span></div>
+  </div>
+
+  <div class="gate locked" id="gateObs">
+    <div class="gate-msg"><div class="box"><b>Kunci prediksimu dulu</b><p style="margin:6px 0 12px;color:var(--muted);font-size:14px">Pengamatan dibuka setelah prediksi tertulis dikunci.</p><button onclick="unlockObs(true)">Buka tanpa prediksi (mode demonstrasi guru)</button></div></div>
+    <div class="gate-body">
+
+    <div class="card">
+      <h3><span class="k">O — Observasi 1 · Analisis video</span>Lemparan vertikal yang dianalisis seperti di Tracker</h3>
+      <p class="lead">Rekaman slow motion lemparan bola di halaman sekolah. Titik merah adalah posisi bola yang ditandai setiap 1/30 s (seperti <i>autotracker</i>), sumbu ungu adalah sistem koordinat, dan garis biru adalah tongkat kalibrasi 5 m. Data posisi mengandung sedikit derau seperti hasil pelacakan sungguhan.</p>
+      <div class="grid-v">
+        <div class="cv-frame"><canvas id="cvVid"></canvas></div>
+        <div>
+          <div class="tabs" id="vTabs"><button data-g="y">Grafik y–t</button><button data-g="v" class="on">Grafik v–t</button><button data-g="a">Grafik a–t</button></div>
+          <div class="cv-frame"><canvas id="cvGraph"></canvas></div>
+          <div class="readout" id="vRead"></div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="pri" id="vPlay">▶ Putar</button><button id="vStep">⏭ +1 frame</button><button id="vReset">⟲ Ulang</button>
+        <div class="seg" id="vSpeed"><button data-sp="1">1×</button><button data-sp=".25" class="on">¼× slow-mo</button><button data-sp=".1">⅒×</button></div>
+        <span class="ctl">v₀ <input type="range" id="vV0" min="6" max="14" step="0.5" value="10"><output id="vV0o">10,0 m/s</output></span>
+      </div>
+      <div class="row">
+        <label class="ck"><input type="checkbox" id="vVec" checked> Tampilkan vektor v dan a</label>
+        <label class="ck"><input type="checkbox" id="vStrobe" checked> Jejak titik pelacakan</label>
+        <label class="ck"><input type="checkbox" id="vPeak" checked> Jeda otomatis di puncak</label>
+        <label class="ck"><input type="checkbox" id="vPredOv" checked> Tumpuk prediksiku di grafik v–t</label>
+      </div>
+      <div class="callout" id="vCall"></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="k">O — Observasi 2 · Eksperimen gesekan (untuk gagasan Dimas)</span>Mobil mainan dengan dorongan yang sama</h3>
+      <p class="lead">Pelontar pegas ditekan sama jauh setiap kali, jadi dorongan awalnya sama. Ukur jarak tempuh mobil sampai berhenti di karpet, lantai keramik, dan kaca. Ulangi tiga kali di setiap permukaan. Lintasan keempat adalah eksperimen pikiran Galileo: kurangi gesekan sampai nol.</p>
+      <div class="cv-frame"><canvas id="cvCar"></canvas></div>
+      <div class="row">
+        <button class="pri" id="carAll">🚗 Lepaskan tiga mobil</button>
+        <button id="carL0">Karpet</button><button id="carL1">Keramik</button><button id="carL2">Kaca</button><button id="carL3">Imajiner</button>
+        <span class="ctl">Gesekan imajiner μ <input type="range" id="carMu" min="0" max="0.03" step="0.002" value="0.012"><output id="carMuo">0,012</output></span>
+        <button id="carReset">Hapus data</button>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div><table class="t" id="carTable"></table></div>
+        <div class="cv-frame"><canvas id="cvCarChart"></canvas></div>
+      </div>
+      <div class="note" style="margin-top:12px">Pertanyaan: jika gesekan makin kecil, jarak makin jauh. Apa yang terjadi bila gesekan benar-benar <b>nol</b>? Coba geser μ imajiner ke 0,000.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="k">O — Observasi 3 · Simulasi</span>Dorong peti, lalu lepaskan dorongan</h3>
+      <p class="lead">Mirip PhET <i>Forces and Motion: Basics</i>. Atur gesekan ke nol, dorong peti, lalu lepaskan dorongan. Perhatikan panah resultan gaya dan spidometer.</p>
+      <div class="cv-frame"><canvas id="cvBox"></canvas></div>
+      <div class="row">
+        <span class="ctl">Gaya dorong <input type="range" id="bxF" min="-300" max="300" step="10" value="0"><output id="bxFo">0 N</output></span>
+        <button id="bxPush">➡ Dorong 150 N</button>
+        <button class="pri" id="bxRelease">✋ Lepas dorongan (F = 0)</button>
+      </div>
+      <div class="row">
+        <span class="ctl">Koefisien gesekan μ <input type="range" id="bxMu" min="0" max="0.4" step="0.01" value="0"><output id="bxMuo">0,00</output></span>
+        <button id="bxNoFric">Tanpa gesekan</button><button id="bxFric">Gesekan lantai kayu</button><button id="bxReset">⟲ Ulang</button>
+        <label class="ck"><input type="checkbox" id="bxSum" checked> Resultan gaya</label>
+        <label class="ck"><input type="checkbox" id="bxVal" checked> Nilai gaya</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="k">E — Eksplanasi</span>Bandingkan prediksi dengan bukti</h3>
+      <div class="grid2">
+        <div>
+          <p style="margin:0 0 6px;font-weight:600">Prediksimu (terkunci):</p>
+          <div id="predEcho" class="note blue">—</div>
+          <div style="margin-top:12px" class="cv-frame"><canvas id="cvPredEcho"></canvas></div>
+        </div>
+        <div>
+          <p style="margin:0 0 6px;font-weight:600">Bagian mana dari gagasan awalku yang tidak sesuai bukti?</p>
+          <textarea id="expl1" placeholder="Gagasan awalku … ternyata bukti menunjukkan …"></textarea>
+          <p style="margin:12px 0 6px;font-weight:600">Bukti mana yang paling meyakinkan? Mengapa?</p>
+          <textarea id="expl2" placeholder="Grafik v–t / jarak mobil / simulasi peti …"></textarea>
+          <div class="note green" style="margin-top:12px;font-size:14px">Ringkasan bukti: (1) grafik v–t berupa garis lurus dengan kemiringan tetap sekitar −9,8 m/s² dan tetap miring saat memotong sumbu t di puncak; (2) makin kecil gesekan, makin jauh mobil meluncur; (3) tanpa gesekan, peti tetap bergerak dengan kecepatan tetap walaupun resultan gayanya nol.</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+  <div class="next"><button class="pri" onclick="go(3)">Lanjut ke Tahap 3 →</button></div>
+</section>
+
+<!-- ===================== TAHAP 3 ===================== -->
+<section class="stage" id="tahap-3" data-s="3">
+  <div class="stage-head"><div class="stage-num">3</div><div>
+    <h2>Rekonstruksi konsep</h2>
+    <p>Sekarang konsep ilmiahnya disajikan secara eksplisit, lalu dibangun ulang lewat diagram gaya bebas, analogi jembatan, dan simulasi vektor.</p>
+  </div></div>
+
+  <div class="card">
+    <h3><span class="k">3.1</span>Tiga besaran yang sering tertukar</h3>
+    <div class="concepts">
+      <div class="concept v"><div class="tag">Keadaan gerak</div><h4 style="color:var(--V)">Kecepatan, v</h4>Seberapa cepat dan ke mana benda bergerak <i>saat ini</i>. Bisa bernilai nol sesaat, misalnya di puncak lemparan.</div>
+      <div class="concept a"><div class="tag">Perubahan keadaan gerak</div><h4 style="color:var(--A)">Percepatan, a</h4>Seberapa cepat kecepatan <i>berubah</i>. Kecepatan nol tidak berarti percepatan nol.</div>
+      <div class="concept f"><div class="tag">Penyebab perubahan</div><h4 style="color:var(--F)">Gaya, F</h4>Tarikan atau dorongan <i>dari benda lain</i>. Gaya tidak disimpan atau dibawa oleh benda, dan tidak “habis”.</div>
+    </div>
+    <div class="law">
+      <div><b>Hukum I Newton</b><div class="eq">ΣF = 0 ⇔ v tetap</div>Jika resultan gaya nol, benda yang diam tetap diam, dan benda yang bergerak tetap bergerak lurus dengan kecepatan tetap. Bergerak <i>tidak</i> memerlukan gaya.</div>
+      <div><b>Hukum II Newton</b><div class="eq">a = ΣF / m</div>Resultan gaya menyebabkan percepatan yang searah dengan resultan gaya, bukan kecepatan yang searah gaya. Pada bola lemparan, ΣF = mg ke bawah sehingga a = g ke bawah sepanjang lintasan.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">3.2</span>Latihan diagram gaya bebas</h3>
+    <p class="lead">Aturan: <b>gaya hanya digambar jika ada benda lain yang berinteraksi</b>. Pilih situasi, centang gaya yang menurutmu bekerja, lalu periksa.</p>
+    <div class="grid-fbd">
+      <div>
+        <div class="tabs" id="fbdPh"></div>
+        <div class="cv-frame"><canvas id="cvFbd"></canvas></div>
+        <div class="row"><label class="ck"><input type="checkbox" id="fbdV"> Tampilkan juga kecepatan (biru), ingat: kecepatan bukan gaya</label></div>
+      </div>
+      <div>
+        <div class="fl" id="fbdList"></div>
+        <div class="row"><button class="pri" id="fbdCheck">Periksa diagramku</button><button id="fbdClear">Ulang</button></div>
+        <div id="fbdRes" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="note blue" style="margin-top:16px">
+      <b>Tantangan:</b> Benda apa yang memberi gaya <b>ke atas</b> pada bola yang sedang naik?
+      <div class="row" id="chal"></div>
+      <div id="chalRes" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">3.3</span>Analogi jembatan (bridging analogies, Clement, 1993)</h3>
+    <p class="lead">Mulai dari intuisi yang sudah benar: bola di lantai licin menggelinding jauh. Lalu miringkan lantai sedikit demi sedikit sampai tegak 90°. Lemparan vertikal ternyata adalah kasus “bidang miring yang tegak”.</p>
+    <div class="cv-frame"><canvas id="cvBridge"></canvas></div>
+    <div class="row">
+      <div class="seg" id="brSteps"><button data-a="0">① Jangkar 0°</button><button data-a="12">② Jembatan 12°</button><button data-a="35">③ Jembatan 35°</button><button data-a="65">④ Jembatan 65°</button><button data-a="90">⑤ Sasaran 90°</button></div>
+      <span class="ctl">Kemiringan <input type="range" id="brA" min="0" max="90" step="1" value="0"><output id="brAo">0°</output></span>
+      <button class="pri" id="brGo">▶ Gelindingkan</button>
+    </div>
+    <div class="note" id="brTxt" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">3.4</span>Vektor kecepatan, percepatan, dan gaya (seperti PhET Projectile Motion)</h3>
+    <p class="lead">Atur sudut 90° untuk lemparan vertikal. Perhatikan panah percepatan dan gaya yang tetap, sementara panah kecepatan memendek, menjadi nol, lalu berbalik arah. Coba juga sudut lain.</p>
+    <div class="cv-frame"><canvas id="cvProj"></canvas></div>
+    <div class="row">
+      <button class="pri" id="pjFire">💥 Tembakkan</button><button id="pjPause">⏸ Jeda</button><button id="pjClear">Hapus jejak</button>
+      <span class="ctl">Sudut <input type="range" id="pjAng" min="0" max="90" step="1" value="90"><output id="pjAngo">90°</output></span>
+      <span class="ctl">v₀ <input type="range" id="pjV0" min="5" max="20" step="0.5" value="14"><output id="pjV0o">14,0 m/s</output></span>
+      <div class="seg" id="pjSpd"><button data-sp="1">1×</button><button data-sp=".4" class="on">Lambat</button><button data-sp=".15">Sangat lambat</button></div>
+    </div>
+    <div class="row">
+      <label class="ck"><input type="checkbox" id="pjV" checked> <span style="color:var(--V);font-weight:700">v</span> kecepatan</label>
+      <label class="ck"><input type="checkbox" id="pjC"> komponen vₓ, v_y</label>
+      <label class="ck"><input type="checkbox" id="pjA" checked> <span style="color:var(--A);font-weight:700">a</span> percepatan</label>
+      <label class="ck"><input type="checkbox" id="pjF" checked> <span style="color:var(--F);font-weight:700">F</span> gaya</label>
+      <label class="ck"><input type="checkbox" id="pjPk" checked> Jeda di puncak</label>
+    </div>
+    <div class="readout" id="pjRead"></div>
+    <div class="callout" id="pjCall"></div>
+  </div>
+
+  <div class="card">
+    <h3><span class="k">3.5</span>Revisi gambarmu dari Tahap 1</h3>
+    <p class="lead">Kiri: gambarmu sebelum belajar (hanya dapat dilihat). Kanan: gambar ulang sesuai pemahamanmu sekarang, lalu bandingkan dengan diagram ilmiah.</p>
+    <div class="grid2">
+      <div><div style="font-weight:700;margin-bottom:6px">Sebelum</div><div class="cv-frame"><canvas id="cvPreRO"></canvas></div></div>
+      <div><div style="font-weight:700;margin-bottom:6px">Sesudah (revisi)</div><div class="cv-frame"><canvas id="cvPost"></canvas></div>
+        <div class="row">
+          <div class="seg" id="postMode"><button class="F on" data-m="F">Gaya</button><button class="V" data-m="V">Kecepatan</button><button data-m="E">Hapus</button></div>
+          <button id="postClear">Hapus semua</button>
+          <label class="ck"><input type="checkbox" id="postKey"> Tumpuk diagram ilmiah</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="next"><button class="pri" onclick="go(4)">Lanjut ke Tahap 4 →</button></div>
+</section>
+
+<!-- ===================== TAHAP 4 ===================== -->
+<section class="stage" id="tahap-4" data-s="4">
+  <div class="stage-head"><div class="stage-num">4</div><div>
+    <h2>Penerapan pada konteks baru — Peer Instruction</h2>
+    <p>Setiap soal dijawab individual dengan kartu A–D, didiskusikan berpasangan, lalu dijawab ulang. Tidak perlu ponsel siswa: guru cukup menghitung kartu yang diangkat.</p>
+  </div></div>
+  <div class="card">
+    <div class="pi-tabs" id="piTabs"></div>
+    <div class="grid-fbd">
+      <div>
+        <div class="cv-frame"><canvas id="cvPI"></canvas></div>
+        <div class="row"><label class="ck"><input type="checkbox" id="piPause"> Jeda animasi</label></div>
+      </div>
+      <div>
+        <h3 id="piTitle" style="margin:0 0 6px"></h3>
+        <p id="piQ" style="margin:0 0 10px"></p>
+        <div class="pi-step"><span class="dot" id="pd1">1</span>Jawab sendiri <span>›</span><span class="dot" id="pd2">2</span>Diskusi berpasangan <span>›</span><span class="dot" id="pd3">3</span>Jawab ulang <span>›</span><span class="dot" id="pd4">4</span>Pembahasan</div>
+      </div>
+    </div>
+    <div class="pi-cards" id="piCards" style="margin-top:14px"></div>
+    <div class="row" id="piCtrl"></div>
+    <details class="teacher" open><summary>Hitung kartu kelas (opsional, untuk guru)</summary>
+      <div class="tally" id="piTally" style="margin-top:10px"></div>
+      <div id="piRec" style="margin-top:10px"></div>
+    </details>
+    <div class="callout" id="piExp"></div>
+    <div id="piDimas" style="display:none;margin-top:14px">
+      <p style="margin:0 0 6px;font-weight:600">Jelaskan ulang kasus motor mogok dengan diagram gaya dan Hukum Newton:</p>
+      <textarea id="dimasTxt" placeholder="Saat motor mogok, gaya yang bekerja adalah … Karena resultan gayanya … maka menurut Hukum … motor …"></textarea>
+    </div>
+  </div>
+  <div class="next"><button class="pri" onclick="go(5)">Lanjut ke Tahap 5 →</button></div>
+</section>
+
+<!-- ===================== TAHAP 5 ===================== -->
+<section class="stage" id="tahap-5" data-s="5">
+  <div class="stage-head"><div class="stage-num">5</div><div>
+    <h2>Refleksi dan evaluasi</h2>
+    <p>Tuliskan perubahan pemikiranmu, kerjakan tes akhir dengan butir paralel, lalu lihat perbandingan sebelum dan sesudah.</p>
+  </div></div>
+  <div class="card">
+    <h3><span class="k">5.1</span>Jurnal refleksi</h3>
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr">
+      <div><p style="margin:0 0 6px;font-weight:600">Dulu saya berpikir …</p><textarea id="j1"></textarea></div>
+      <div><p style="margin:0 0 6px;font-weight:600">Sekarang saya memahami …</p><textarea id="j2"></textarea></div>
+      <div><p style="margin:0 0 6px;font-weight:600">Bukti yang mengubah pikiran saya adalah …</p><textarea id="j3"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="k">5.2</span>Tes akhir (butir paralel dengan Tahap 1, disertai CRI)</h3>
+    <div id="quizPost"></div>
+  </div>
+  <div class="card">
+    <h3><span class="k">5.3</span>Perbandingan konsepsi: sebelum, sesudah, dan tes tunda</h3>
+    <p class="lead">Kategori CRI (Hasan, Bagayoko, &amp; Kelley, 1999): jawaban benar dengan CRI &gt; 2,5 berarti paham konsep; benar dengan CRI rendah berarti menebak; salah dengan CRI rendah berarti belum tahu konsep; salah dengan CRI tinggi berarti <b>miskonsepsi</b>.</p>
+    <div id="cmp"></div>
+    <div class="grid2" style="margin-top:16px">
+      <div><div style="font-weight:700;margin-bottom:6px">Gambar Tahap 1</div><div class="cv-frame"><canvas id="cvCmpPre"></canvas></div></div>
+      <div><div style="font-weight:700;margin-bottom:6px">Gambar revisi Tahap 3</div><div class="cv-frame"><canvas id="cvCmpPost"></canvas></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="k">5.4</span>Tes tunda (2–4 minggu kemudian)</h3>
+    <p class="lead">Miskonsepsi mekanika dikenal resisten dan dapat muncul kembali, jadi pemahaman perlu dicek ulang setelah jeda.</p>
+    <div class="row"><span class="ctl">Jadwal tes tunda <input type="date" id="delayDate" style="width:auto;padding:4px 8px"></span><span id="delayInfo" style="font-size:14px;color:var(--muted)"></span></div>
+    <div class="row"><button id="delayStart">Mulai tes tunda</button></div>
+    <div id="quizDelay" style="display:none"></div>
+  </div>
+  <div class="card">
+    <h3><span class="k">5.5</span>Ringkasan untuk guru</h3>
+    <div class="row"><button class="pri" id="copySum">📋 Salin ringkasan</button><button id="resetAll">Hapus semua data di perangkat ini</button><span id="copyMsg" style="font-size:14px;color:var(--muted)"></span></div>
+    <textarea id="sumTxt" style="margin-top:10px;min-height:160px;font-family:'JetBrains Mono',monospace;font-size:13px" readonly></textarea>
+  </div>
+  <footer>
+    Rujukan: Hestenes, D., Wells, M., &amp; Swackhamer, G. (1992). Force Concept Inventory. <i>The Physics Teacher, 30</i>, 141–158. · Hasan, S., Bagayoko, D., &amp; Kelley, E. L. (1999). Misconceptions and the Certainty of Response Index (CRI). <i>Physics Education, 34</i>(5). · Clement, J. (1993). Using bridging analogies and anchoring intuitions to deal with students' preconceptions in physics. <i>JRST, 30</i>(10). · Mazur, E. (1997). <i>Peer Instruction</i>. · Perangkat nyata: <a href="https://physlets.org/tracker/" target="_blank" rel="noopener">Tracker (Open Source Physics)</a>, <a href="https://phet.colorado.edu/en/simulations/forces-and-motion-basics" target="_blank" rel="noopener">PhET Forces and Motion: Basics</a>, <a href="https://phet.colorado.edu/en/simulations/projectile-motion" target="_blank" rel="noopener">PhET Projectile Motion</a>.<br>
+    Butir tes di halaman ini adalah adaptasi, bukan butir asli FCI. Data tersimpan hanya di peramban perangkat ini.
+  </footer>
+</section>
+</div>
+
+<script>
+"use strict";
+/* ============ utilitas ============ */
+const g = 9.8;
+const COL = {F:'#e03b3b', V:'#2367e8', A:'#12965a', P:'#7c4dcc'};
+const FONT = '"Plus Jakarta Sans",system-ui,sans-serif';
+const MONO = '"JetBrains Mono",monospace';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+let S = {};
+try { S = JSON.parse(localStorage.getItem('labNewton_v1')) || {}; } catch(e) { S = {}; }
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem('labNewton_v1', JSON.stringify(S)); }catch(e){} }, 200); }
+function fmt(x, d=2){ if(!isFinite(x)) return '—'; const s = Math.abs(x).toFixed(d).replace('.', ','); return (x < 0 && +Math.abs(x).toFixed(d) !== 0 ? '−' : '') + s; }
+function rng(seed){ let s = seed % 2147483647; if (s <= 0) s += 2147483646; return () => (s = s * 16807 % 2147483647, (s - 1) / 2147483646); }
+function gauss(r){ let u = 0, v = 0; while(!u) u = r(); v = r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+function mk(cv, W, H){ cv.width = W*DPR; cv.height = H*DPR; cv.style.aspectRatio = W + '/' + H; const c = cv.getContext('2d'); c.setTransform(DPR,0,0,DPR,0,0); c.W = W; c.H = H; return c; }
+function off(W, H){ const cv = document.createElement('canvas'); cv.width = W*DPR; cv.height = H*DPR; const x = cv.getContext('2d'); x.setTransform(DPR,0,0,DPR,0,0); return {c:cv, x, W, H}; }
+function blit(c, o, x=0, y=0){ c.drawImage(o.c, x, y, o.W, o.H); }
+function ptr(cv, e, W, H){ const r = cv.getBoundingClientRect(); return {x:(e.clientX - r.left)*W/r.width, y:(e.clientY - r.top)*H/r.height}; }
+function rr(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x+r, y); c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r); c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath(); }
+function segBind(sel, cb){ const el = $(sel); el.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; el.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); cb(b); }); }
+
+function arrow(c, x1, y1, x2, y2, col, w=5, label, opt={}){
+  const dx = x2-x1, dy = y2-y1, L = Math.hypot(dx, dy); if (L < 2) return;
+  const ux = dx/L, uy = dy/L, h = Math.min(L*0.55, w*2.8 + 7), hw = h*0.56;
+  const bx = x2 - ux*h, by = y2 - uy*h;
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+  if (opt.dash) c.setLineDash(opt.dash);
+  if (opt.alpha != null) c.globalAlpha = opt.alpha;
+  for (const pass of [0, 1]){
+    const e = pass ? 0 : 2.4;
+    c.strokeStyle = c.fillStyle = pass ? col : 'rgba(255,255,255,.92)';
+    c.lineWidth = w + e*2;
+    c.beginPath(); c.moveTo(x1, y1); c.lineTo(bx + ux*1, by + uy*1); c.stroke();
+    c.setLineDash([]);
+    c.beginPath(); c.moveTo(x2 + ux*e*1.4, y2 + uy*e*1.4); c.lineTo(bx - uy*(hw+e) - ux*e*.5, by + ux*(hw+e) - uy*e*.5); c.lineTo(bx + uy*(hw+e) - ux*e*.5, by - ux*(hw+e) - uy*e*.5); c.closePath(); c.fill();
+    if (opt.dash && !pass) c.setLineDash(opt.dash);
+  }
+  if (label){
+    const px = -uy, py = ux; const side = opt.side || 1;
+    const lx = x2 + ux*10 + px*16*side + (opt.lx||0), ly = y2 + uy*10 + py*16*side + (opt.ly||0);
+    text(c, label, lx, ly, col, opt.font || ('700 15px ' + FONT));
+  }
+  c.restore();
+}
+function text(c, s, x, y, col='#18202d', font='600 14px ' + FONT, align='center', halo=true){
+  c.save(); c.font = font; c.textAlign = align; c.textBaseline = 'middle';
+  if (halo){ c.lineWidth = 4; c.strokeStyle = 'rgba(255,255,255,.92)'; c.lineJoin = 'round'; c.strokeText(s, x, y); }
+  c.fillStyle = col; c.fillText(s, x, y); c.restore();
+}
+function pill(c, s, x, y, bg='rgba(24,32,45,.82)', fg='#fff', font='600 13px ' + FONT){
+  c.save(); c.font = font; const w = c.measureText(s).width + 18, h = 24;
+  rr(c, x - w/2, y - h/2, w, h, 12); c.fillStyle = bg; c.fill();
+  c.fillStyle = fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, x, y + .5); c.restore();
+}
+
+/* ---------- bola basket realistis ---------- */
+let ballTex = null;
+function makeBallTex(){
+  const o = off(96, 96), r = rng(77);
+  for (let i = 0; i < 2200; i++){ o.x.fillStyle = `rgba(70,25,0,${0.06 + r()*0.14})`; o.x.beginPath(); o.x.arc(r()*96, r()*96, .5 + r()*.8, 0, 7); o.x.fill(); }
+  for (let i = 0; i < 500; i++){ o.x.fillStyle = `rgba(255,220,180,${0.05 + r()*0.08})`; o.x.beginPath(); o.x.arc(r()*96, r()*96, .4 + r()*.6, 0, 7); o.x.fill(); }
+  ballTex = o;
+}
+makeBallTex();
+function drawBall(c, x, y, R, rot=0, alpha=1){
+  c.save(); c.globalAlpha = alpha; c.translate(x, y);
+  const g1 = c.createRadialGradient(-R*.35, -R*.4, R*.05, 0, 0, R*1.05);
+  g1.addColorStop(0, '#ffc58c'); g1.addColorStop(.32, '#f28a34'); g1.addColorStop(.78, '#bb5210'); g1.addColorStop(1, '#6a2a04');
+  c.beginPath(); c.arc(0, 0, R, 0, Math.PI*2); c.fillStyle = g1; c.fill();
+  c.save(); c.clip();
+  c.globalAlpha = alpha*.8; c.drawImage(ballTex.c, -R, -R, 2*R, 2*R); c.globalAlpha = alpha;
+  c.rotate(rot);
+  c.strokeStyle = 'rgba(32,12,3,.92)'; c.lineWidth = Math.max(1.1, R*.075); c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-R, 0); c.lineTo(R, 0); c.moveTo(0, -R); c.lineTo(0, R); c.stroke();
+  c.beginPath(); c.arc(-R*1.3, 0, R*1.0, -1.25, 1.25); c.stroke();
+  c.beginPath(); c.arc(R*1.3, 0, R*1.0, Math.PI - 1.25, Math.PI + 1.25); c.stroke();
+  c.restore();
+  const g2 = c.createRadialGradient(-R*.42, -R*.48, 0, -R*.42, -R*.48, R*.75);
+  g2.addColorStop(0, 'rgba(255,255,255,.55)'); g2.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = g2; c.beginPath(); c.arc(0, 0, R, 0, 7); c.fill();
+  const g3 = c.createRadialGradient(R*.15, R*.2, R*.45, 0, 0, R*1.02);
+  g3.addColorStop(0, 'rgba(0,0,0,0)'); g3.addColorStop(1, 'rgba(20,5,0,.4)');
+  c.fillStyle = g3; c.beginPath(); c.arc(0, 0, R, 0, 7); c.fill();
+  c.restore();
+}
+function shadow(c, x, y, R, h){
+  const k = Math.max(0, 1 - h/420);
+  c.save(); c.globalAlpha = .38*k + .05; c.fillStyle = '#1b2410';
+  c.filter = 'blur(' + (2 + h/40) + 'px)';
+  c.beginPath(); c.ellipse(x, y, R*(1.05 + h/350), R*.28*(1 + h/500), 0, 0, 7); c.fill(); c.restore();
+}
+
+/* ---------- pemandangan ---------- */
+function cloud(c, x, y, s, r, a=.92){
+  c.save(); c.globalAlpha = a; c.filter = 'blur(2px)';
+  for (let i = 0; i < 7; i++){
+    const cx = x + (r() - .5)*s*1.7, cy = y + (r() - .5)*s*.25;
+    const gr = c.createRadialGradient(cx, cy - s*.15, 0, cx, cy, s*.55);
+    gr.addColorStop(0, '#ffffff'); gr.addColorStop(.7, 'rgba(246,249,255,.95)'); gr.addColorStop(1, 'rgba(225,234,246,0)');
+    c.fillStyle = gr; c.beginPath(); c.ellipse(cx, cy, s*(.38 + r()*.28), s*(.24 + r()*.14), 0, 0, 7); c.fill();
+  }
+  c.restore();
+}
+function tree(c, x, gy, s, r){
+  c.save();
+  c.fillStyle = '#5a3d24'; c.fillRect(x - s*.06, gy - s*.75, s*.12, s*.75);
+  for (let i = 0; i < 9; i++){
+    const cx = x + (r() - .5)*s*.8, cy = gy - s*.85 - r()*s*.55, rad = s*(.22 + r()*.18);
+    const gr = c.createRadialGradient(cx - rad*.3, cy - rad*.4, rad*.1, cx, cy, rad);
+    gr.addColorStop(0, '#7fb35a'); gr.addColorStop(.7, '#3f7a2f'); gr.addColorStop(1, '#2b5a22');
+    c.fillStyle = gr; c.beginPath(); c.arc(cx, cy, rad, 0, 7); c.fill();
+  }
+  c.restore();
+}
+function sky(c, W, h, top='#4f9be6', mid='#a6d1f6', bot='#eaf4fc'){
+  const sk = c.createLinearGradient(0, 0, 0, h); sk.addColorStop(0, top); sk.addColorStop(.62, mid); sk.addColorStop(1, bot);
+  c.fillStyle = sk; c.fillRect(0, 0, W, h);
+}
+function sceneOutdoor(W, H, gy, seed=3, opts={}){
+  const o = off(W, H), c = o.x, r = rng(seed);
+  sky(c, W, gy);
+  const sg = c.createRadialGradient(W*.88, gy*.18, 0, W*.88, gy*.18, 220);
+  sg.addColorStop(0, 'rgba(255,252,230,1)'); sg.addColorStop(.08, 'rgba(255,246,205,.9)'); sg.addColorStop(.3, 'rgba(255,240,190,.25)'); sg.addColorStop(1, 'rgba(255,240,190,0)');
+  c.fillStyle = sg; c.fillRect(0, 0, W, gy);
+  for (let i = 0; i < (opts.clouds ?? 5); i++) cloud(c, r()*W, 30 + r()*gy*.38, 40 + r()*55, r);
+  // bukit jauh
+  const hill = (base, amp, col, f) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, gy); for (let x = 0; x <= W; x += 8) c.lineTo(x, base - amp*(.5 + .5*Math.sin(x*f + seed) * Math.cos(x*f*.37 + seed*2))); c.lineTo(W, gy); c.closePath(); c.fill(); };
+  hill(gy - 30, 55, '#b4cdc0', .006); hill(gy - 12, 34, '#92b79c', .011);
+  for (let i = 0; i < (opts.trees ?? 6); i++) tree(c, r()*W, gy + 2, 48 + r()*40, r);
+  const gg = c.createLinearGradient(0, gy, 0, H); gg.addColorStop(0, '#77ad4e'); gg.addColorStop(1, '#3d7429');
+  c.fillStyle = gg; c.fillRect(0, gy, W, H - gy);
+  c.lineWidth = 1;
+  for (let i = 0; i < W*4; i++){
+    const x = r()*W, y = gy + Math.pow(r(), .8)*(H - gy);
+    c.strokeStyle = r() < .5 ? `rgba(30,70,18,${.2 + r()*.3})` : `rgba(170,215,110,${.2 + r()*.3})`;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r() - .5)*3, y - 2 - r()*5*(y - gy + 20)/(H - gy + 20)); c.stroke();
+  }
+  return o;
+}
+
+/* ============ navigasi ============ */
+let cur = 1;
+function go(n){ location.hash = 'tahap-' + n; }
+function route(){
+  const m = /tahap-(\d)/.exec(location.hash); const n = m ? +m[1] : 1; cur = n;
+  $$('section.stage').forEach(s => s.classList.toggle('on', +s.dataset.s === n));
+  $$('#stepNav a').forEach(a => a.classList.toggle('on', +a.dataset.s === n));
+  S.visited = S.visited || {}; S.visited[n] = 1; save();
+  $$('#stepNav a').forEach(a => a.classList.toggle('done', !!S.visited[a.dataset.s] && +a.dataset.s !== n));
+  window.scrollTo({top: 0});
+  onStage.forEach(f => f(n));
+}
+const onStage = [];
+window.addEventListener('hashchange', route);
+
+/* ============ loop animasi ============ */
+const sims = [];
+function addSim(stage, tick){ sims.push({stage, tick}); }
+let lastT = performance.now();
+function loop(now){
+  const dt = Math.min(.05, (now - lastT)/1000); lastT = now;
+  for (const s of sims) if (s.stage === cur || (Array.isArray(s.stage) && s.stage.includes(cur))) s.tick(dt, now/1000);
+  requestAnimationFrame(loop);
+}
+
+/* ============ header art ============ */
+(function(){
+  const cv = $('#hdrArt'), W = 460, H = 220, c = mk(cv, W, H);
+  cv.style.height = '100%';
+  let t = 0;
+  addSim([1,2,3,4,5], dt => {
+    t += dt; c.clearRect(0, 0, W, H);
+    const T = 2*9/g, tau = t % (T + .6), tt = Math.min(tau, T);
+    const y = 190 - (9*tt - .5*g*tt*tt)*18, v = 9 - g*tt;
+    c.save(); c.globalAlpha = .18; c.strokeStyle = '#fff'; c.setLineDash([3, 6]); c.beginPath(); c.moveTo(300, 190); c.lineTo(300, 190 - 81/(2*g)*18 - 10); c.stroke(); c.restore();
+    for (let k = 1; k <= 5; k++){ const tk = tt - k*.09; if (tk < 0) break; drawBall(c, 300, 190 - (9*tk - .5*g*tk*tk)*18, 16, 0, .12); }
+    drawBall(c, 300, y, 16, tt*2);
+    arrow(c, 300 + 26, y, 300 + 26, y + 46, '#ff6b6b', 4, 'F', {side:-1});
+    if (Math.abs(v) > .2) arrow(c, 300 - 26, y, 300 - 26, y - v*5.2, '#5d9bff', 4, 'v', {side:1});
+    else text(c, 'v = 0', 300 - 52, y, '#9cc2ff', '700 14px ' + FONT, 'center', false);
+    arrow(c, 300 + 54, y, 300 + 54, y + 46, '#41d18c', 4, 'a', {side:-1});
+  });
+})();
+
+/* ============ DRAWER (gambar panah Tahap 1 & 3) ============ */
+const DW = 900, DH = 500, DGY = 452;
+const DPOS = [{x:180, y:300, t:'Saat naik'}, {x:450, y:118, t:'Di puncak'}, {x:720, y:300, t:'Saat turun'}];
+let drawerBg = null;
+function blankDrawing(){ return {f:[[],[],[]], v:[null,null,null], f0:[0,0,0], v0:[0,0,0]}; }
+function Drawer(cv, key, {editable=true} = {}){
+  const c = mk(cv, DW, DH);
+  if (!drawerBg) drawerBg = sceneOutdoor(DW, DH, DGY, 11, {trees:5});
+  if (!S[key]) S[key] = blankDrawing();
+  const self = {mode:'F', showKey:false, render};
+  let drag = null;
+  function st(){ return S[key] || (S[key] = blankDrawing()); }
+  function render(){
+    blit(c, drawerBg);
+    // garis bantu lintasan samar
+    c.save(); c.globalAlpha = .35; c.strokeStyle = '#fff'; c.lineWidth = 2; c.setLineDash([4, 8]);
+    DPOS.forEach(p => { c.beginPath(); c.moveTo(p.x, p.y + 34); c.lineTo(p.x, DGY - 4); c.stroke(); });
+    c.restore();
+    const s = st();
+    DPOS.forEach((p, i) => {
+      shadow(c, p.x, DGY + 6, 26, DGY - p.y);
+      drawBall(c, p.x, p.y, 26, i*.7 + .3);
+      pill(c, p.t, p.x, i === 1 ? p.y - 52 : DGY + 24);
+      s.f[i].forEach(a => arrow(c, p.x, p.y, p.x + a[0], p.y + a[1], COL.F, 5.5, 'F', {side: a[0] > 0 ? -1 : 1}));
+      if (s.v[i]) arrow(c, p.x, p.y, p.x + s.v[i][0], p.y + s.v[i][1], COL.V, 5.5, 'v', {side: -1});
+      if (s.f0[i]) pill(c, 'F = 0', p.x + 62, p.y - 18, COL.F);
+      if (s.v0[i]) pill(c, 'v = 0', p.x - 62, p.y - 18, COL.V);
+      if (self.showKey){
+        c.save(); c.globalAlpha = .9;
+        arrow(c, p.x + 4, p.y, p.x + 4, p.y + 92, '#8b1a1a', 4, 'w = mg', {dash:[7, 6], side:-1, lx:10});
+        if (i === 0) arrow(c, p.x - 4, p.y, p.x - 4, p.y - 85, '#0f3c99', 4, 'v', {dash:[7, 6]});
+        if (i === 2) arrow(c, p.x - 4, p.y, p.x - 4, p.y + 85, '#0f3c99', 4, 'v', {dash:[7, 6], side:-1, lx:-30});
+        if (i === 1) pill(c, 'v = 0 (sesaat)', p.x - 82, p.y + 10, '#0f3c99');
+        c.restore();
+      }
+    });
+    if (drag && drag.moved){ const p = DPOS[drag.i]; arrow(c, p.x, p.y, drag.x, drag.y, self.mode === 'V' ? COL.V : COL.F, 5.5, null, {alpha:.7}); }
+    if (self.showKey){ pill(c, 'Diagram ilmiah (garis putus-putus): hanya gaya berat, ke bawah, di ketiga posisi', DW/2, 24, 'rgba(139,26,26,.88)'); }
+    if (!editable){ c.save(); c.fillStyle = 'rgba(0,0,0,.0)'; c.restore(); }
+  }
+  if (editable){
+    cv.addEventListener('pointerdown', e => {
+      const p = ptr(cv, e, DW, DH); let best = -1, bd = 80;
+      DPOS.forEach((b, i) => { const d = Math.hypot(b.x - p.x, b.y - p.y); if (d < bd){ bd = d; best = i; } });
+      if (best < 0) return;
+      cv.setPointerCapture(e.pointerId);
+      if (self.mode === 'E'){ const s = st(); s.f[best] = []; s.v[best] = null; s.f0[best] = 0; s.v0[best] = 0; save(); render(); self.onchange && self.onchange(); return; }
+      drag = {i:best, x:p.x, y:p.y, sx:p.x, sy:p.y, moved:false};
+    });
+    cv.addEventListener('pointermove', e => { if (!drag) return; const p = ptr(cv, e, DW, DH); drag.x = p.x; drag.y = p.y; if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 10) drag.moved = true; render(); });
+    const end = () => {
+      if (!drag) return; const s = st(), i = drag.i, b = DPOS[i];
+      const dx = drag.x - b.x, dy = drag.y - b.y;
+      if (!drag.moved || Math.hypot(dx, dy) < 22){
+        if (self.mode === 'F'){ s.f0[i] = s.f0[i] ? 0 : 1; if (s.f0[i]) s.f[i] = []; }
+        else { s.v0[i] = s.v0[i] ? 0 : 1; if (s.v0[i]) s.v[i] = null; }
+      } else {
+        if (self.mode === 'F'){ s.f[i].push([Math.round(dx), Math.round(dy)]); if (s.f[i].length > 4) s.f[i].shift(); s.f0[i] = 0; }
+        else { s.v[i] = [Math.round(dx), Math.round(dy)]; s.v0[i] = 0; }
+      }
+      drag = null; save(); render(); self.onchange && self.onchange();
+    };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', () => { drag = null; render(); });
+  }
+  self.clear = () => { S[key] = blankDrawing(); save(); render(); self.onchange && self.onchange(); };
+  render();
+  return self;
+}
+function dirWord(a){ const [dx, dy] = a; if (-dy > Math.abs(dx)*1.2) return 'ke atas'; if (dy > Math.abs(dx)*1.2) return 'ke bawah'; if (Math.abs(dy) < Math.abs(dx)*.4) return dx > 0 ? 'ke kanan' : 'ke kiri'; return 'miring ' + (dy < 0 ? 'ke atas' : 'ke bawah'); }
+function describeDrawing(s){
+  if (!s) return '';
+  return DPOS.map((p, i) => {
+    const f = s.f0[i] ? 'tidak ada gaya (F = 0)' : s.f[i].length ? s.f[i].length + ' gaya: ' + s.f[i].map(dirWord).join(', ') : 'gaya belum digambar';
+    const v = s.v0[i] ? 'kecepatan nol' : s.v[i] ? 'kecepatan ' + dirWord(s.v[i]) : 'kecepatan belum digambar';
+    return `<li><b>${p.t}:</b> ${f}; ${v}.</li>`;
+  }).join('');
+}
+function detectIdeas(s){
+  const out = [];
+  if (!s) return out;
+  if (s.f[0].some(a => dirWord(a) === 'ke atas')) out.push('Ada gaya ke atas saat bola naik');
+  if (s.f0[1] || (s.f[1].length === 0 && !s.f0[1] && (s.f[0].length || s.f[2].length))) out.push('Tidak ada gaya di puncak');
+  if (s.f[1].some(a => dirWord(a) === 'ke atas') && s.f[1].some(a => dirWord(a) === 'ke bawah')) out.push('Gaya seimbang di puncak');
+  if (s.f[2].some(a => dirWord(a) === 'ke atas')) out.push('Ada gaya ke atas saat bola turun');
+  return out;
+}
+
+/* ============ QUIZ ============ */
+const CRI_L = ['0 Menebak total', '1 Hampir menebak', '2 Tidak yakin', '3 Yakin', '4 Hampir pasti', '5 Pasti'];
+const PRE_ITEMS = [
+  {q:'Sebuah bola dilempar vertikal ke atas. Setelah lepas dari tangan dan bola masih bergerak naik, gaya apa saja yang bekerja pada bola? (Hambatan udara diabaikan.)',
+   o:['Gaya berat ke bawah dan gaya lemparan ke atas yang makin lama makin kecil', 'Hanya gaya berat ke bawah', 'Hanya gaya lemparan ke atas', 'Tidak ada gaya; bola naik karena kecepatannya'], a:1, topic:'Gaya saat naik'},
+  {q:'Saat bola tepat berada di titik tertinggi, gaya yang bekerja pada bola adalah …',
+   o:['Tidak ada gaya, karena bola diam sesaat', 'Gaya berat ke bawah saja', 'Gaya berat dan gaya ke atas yang sama besar sehingga seimbang', 'Gaya ke atas yang tersisa sedikit'], a:1, topic:'Gaya di puncak'},
+  {q:'Percepatan bola tepat di titik tertinggi adalah …',
+   o:['Nol, karena kecepatannya nol', 'Sekitar 9,8 m/s² arah ke bawah', 'Sekitar 9,8 m/s² arah ke atas', 'Tidak dapat ditentukan karena bola sedang berbalik arah'], a:1, topic:'Percepatan di puncak'},
+  {q:'Sebuah keping hoki didorong di atas permukaan es yang dianggap licin sempurna, lalu dilepas. Setelah dilepas, keping akan …',
+   o:['Melambat lalu berhenti karena gaya dorongnya habis', 'Bergerak lurus dengan kecepatan tetap', 'Bergerak makin cepat', 'Langsung berhenti begitu dilepas'], a:1, topic:'Gerak tanpa gaya (Hukum I)'},
+  {q:'Sebuah lemari didorong sehingga bergeser di lantai dengan kecepatan tetap. Bagaimana gaya dorong dibandingkan gaya gesek?',
+   o:['Gaya dorong lebih besar, karena lemari bergerak', 'Gaya dorong sama besar dengan gaya gesek', 'Gaya dorong lebih kecil dari gaya gesek', 'Tidak ada gaya gesek ketika lemari sudah bergerak'], a:1, topic:'Kecepatan tetap ⇒ ΣF = 0'},
+];
+const POST_ITEMS = [
+  {q:'Batu dilempar lurus ke atas dari tepi kolam. Saat batu masih naik (sudah lepas dari tangan), gaya pada batu adalah …',
+   o:['Gaya berat ke bawah dan sisa gaya dorong tangan ke atas', 'Gaya dorong ke atas yang lebih besar dari gaya berat', 'Hanya gaya berat ke bawah', 'Tidak ada gaya sama sekali'], a:2, topic:'Gaya saat naik'},
+  {q:'Sebuah koin dilempar ke atas. Tepat di titik tertinggi, …',
+   o:['tidak ada gaya pada koin', 'gaya berat dan gaya ke atas seimbang', 'hanya gaya ke atas yang bekerja', 'hanya gaya berat ke bawah yang bekerja'], a:3, topic:'Gaya di puncak'},
+  {q:'Grafik kecepatan terhadap waktu (v–t) koin dari dilempar sampai ditangkap kembali berbentuk …',
+   o:['garis lurus menurun yang memotong sumbu t tepat di puncak', 'garis turun sampai nol, mendatar sebentar di puncak, lalu turun lagi', 'bentuk V: turun ke nol lalu naik lagi', 'garis mendatar karena gravitasi tetap'], a:0, topic:'Percepatan di puncak'},
+  {q:'Sebuah kotak meluncur di lantai tanpa gesekan setelah dorongan dihentikan. Kotak akan …',
+   o:['melambat karena gaya dorongnya berkurang', 'segera berhenti', 'bergerak dengan kecepatan tetap', 'bergerak makin cepat'], a:2, topic:'Gerak tanpa gaya (Hukum I)'},
+  {q:'Mobil melaju di jalan lurus dengan kecepatan tetap 60 km/jam. Resultan gaya pada mobil …',
+   o:['searah gerak mobil', 'nol', 'berlawanan arah gerak mobil', 'sama dengan gaya dorong mesin'], a:1, topic:'Kecepatan tetap ⇒ ΣF = 0'},
+];
+function catOf(ans, item){ if (!ans || ans.c == null || ans.cri == null) return null; const ok = ans.c === item.a, hi = ans.cri > 2.5; return ok ? (hi ? 'paham' : 'menebak') : (hi ? 'miskonsepsi' : 'tidaktahu'); }
+const CAT_L = {paham:'Paham konsep', menebak:'Menebak', tidaktahu:'Belum tahu konsep', miskonsepsi:'Miskonsepsi'};
+const CAT_C = {paham:'#14915a', menebak:'#e0a01f', tidaktahu:'#9aa2b1', miskonsepsi:'#d23b3b'};
+function Quiz(el, items, key, {reveal=false, shuffle=false, onDone} = {}){
+  S[key] = S[key] || {ans:items.map(() => ({c:null, cri:null})), done:false};
+  const st = S[key];
+  let order = items.map((_, i) => i);
+  if (shuffle){ const r = rng(42); order.sort(() => r() - .5); }
+  function render(){
+    el.innerHTML = '';
+    order.forEach((ii, n) => {
+      const it = items[ii], a = st.ans[ii];
+      const d = document.createElement('div'); d.className = 'q';
+      d.innerHTML = `<div class="qt"><span>${n + 1}</span>${it.q}</div><div class="opts"></div><div class="cri">Keyakinan (CRI): </div>`;
+      const opts = d.querySelector('.opts');
+      it.o.forEach((o, k) => {
+        const b = document.createElement('div'); b.className = 'opt' + (a.c === k ? ' sel' : '');
+        if (st.done && reveal){ if (k === it.a) b.classList.add('right'); else if (a.c === k) b.classList.add('wrong'); }
+        b.innerHTML = `<b>${'ABCD'[k]}</b><span>${o}</span>`;
+        b.onclick = () => { if (st.done) return; a.c = k; save(); render(); };
+        opts.appendChild(b);
+      });
+      const cri = d.querySelector('.cri');
+      CRI_L.forEach((l, k) => { const b = document.createElement('button'); b.textContent = l; if (a.cri === k) b.className = 'on'; b.onclick = () => { if (st.done) return; a.cri = k; save(); render(); }; cri.appendChild(b); });
+      if (st.done && reveal){ const cat = catOf(a, it); const sp = document.createElement('span'); sp.className = 'chip c-' + cat; sp.style.marginLeft = '8px'; sp.textContent = CAT_L[cat]; cri.appendChild(sp); }
+      el.appendChild(d);
+    });
+    const row = document.createElement('div'); row.className = 'row';
+    const complete = st.ans.every(a => a.c != null && a.cri != null);
+    if (!st.done){
+      const b = document.createElement('button'); b.className = 'pri'; b.textContent = 'Kirim jawaban'; b.disabled = !complete;
+      b.onclick = () => { st.done = true; save(); render(); onDone && onDone(); };
+      row.appendChild(b);
+      const s = document.createElement('span'); s.style.cssText = 'font-size:14px;color:var(--muted)'; s.textContent = complete ? 'Semua butir terisi.' : 'Isi jawaban dan tingkat keyakinan untuk setiap butir.'; row.appendChild(s);
+    } else {
+      const s = document.createElement('div'); s.className = 'note green'; s.style.width = '100%';
+      if (reveal){ s.innerHTML = 'Jawaban tercatat. Kategori CRI ditunjukkan pada setiap butir; perbandingan lengkap ada di bawah.'; }
+      else {
+        const cnt = {paham:0, menebak:0, tidaktahu:0, miskonsepsi:0}; st.ans.forEach((a, i) => cnt[catOf(a, items[i])]++);
+        s.innerHTML = `Jawaban tercatat. Kunci dibuka di Tahap 5. <br><b>Peta untuk guru:</b> ${Object.keys(cnt).map(k => `<span class="chip c-${k}">${CAT_L[k]}: ${cnt[k]}</span>`).join(' ')}`;
+      }
+      row.appendChild(s);
+      const r = document.createElement('button'); r.textContent = 'Ulangi tes ini'; r.onclick = () => { S[key] = {ans:items.map(() => ({c:null, cri:null})), done:false}; Object.assign(st, S[key]); S[key] = st; save(); render(); onDone && onDone(); }; row.appendChild(r);
+    }
+    el.appendChild(row);
+  }
+  render();
+  return {render};
+}
+
+/* ============ TAHAP 1 ============ */
+const preDrawer = Drawer($('#cvPre'), 'pre');
+segBind('#preMode', b => preDrawer.mode = b.dataset.m);
+$('#preClear').onclick = () => preDrawer.clear();
+function showPreDesc(){
+  const s = S.pre, el = $('#preDesc');
+  const any = s && (s.f.some(x => x.length) || s.v.some(x => x) || s.f0.some(x => x) || s.v0.some(x => x));
+  if (!any){ el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = `<b>Konsepsimu tercatat.</b> Kamu menggambar:<ul class="summary-list">${describeDrawing(s)}</ul><span style="font-size:13px">Simpan gambar ini. Kamu akan membandingkannya lagi di Tahap 3.</span>`;
+}
+$('#preSave').onclick = () => { S.preSaved = Date.now(); save(); showPreDesc(); autoTagIdeas(); };
+preDrawer.onchange = () => { if ($('#preDesc').style.display === 'block') showPreDesc(); };
+if (S.preSaved) showPreDesc();
+Quiz($('#quizPre'), PRE_ITEMS, 'qPre', {onDone: () => updateCompare()});
+
+const DEFAULT_IDEAS = ['Ada gaya ke atas saat bola naik', 'Gaya lemparan habis di puncak', 'Tidak ada gaya di puncak', 'Gaya seimbang di puncak', 'Gaya selalu searah gerak', 'Ada gaya ke atas saat bola turun', 'Hanya gaya berat di ketiga posisi'];
+S.ideas = S.ideas || DEFAULT_IDEAS.map(n => ({n, k:0}));
+function renderIdeas(){
+  const box = $('#ideaTags'); box.innerHTML = '';
+  S.ideas.forEach(it => { const b = document.createElement('button'); b.innerHTML = `${it.n} <span class="cnt">${it.k}</span>`; b.onclick = () => { it.k++; save(); renderIdeas(); }; b.oncontextmenu = e => { e.preventDefault(); it.k = Math.max(0, it.k - 1); save(); renderIdeas(); }; box.appendChild(b); });
+  const max = Math.max(1, ...S.ideas.map(i => i.k)); const bars = $('#ideaBars'); bars.innerHTML = '';
+  S.ideas.filter(i => i.k > 0).sort((a, b) => b.k - a.k).forEach(it => {
+    const d = document.createElement('div'); d.style.cssText = 'display:grid;grid-template-columns:260px 1fr 40px;gap:10px;align-items:center;font-size:13.5px';
+    d.innerHTML = `<span>${it.n}</span><div style="height:14px;border-radius:7px;background:#ece7db;overflow:hidden"><div style="height:100%;width:${it.k/max*100}%;background:linear-gradient(90deg,#3b4a63,#5c6f90)"></div></div><b class="mono">${it.k}</b>`;
+    bars.appendChild(d);
+  });
+  if (!S.ideas.some(i => i.k)) bars.innerHTML = '<div style="font-size:13.5px;color:var(--muted)">Belum ada catatan. (Klik kanan pada tombol untuk mengurangi hitungan.)</div>';
+}
+function autoTagIdeas(){ if (S.autoTagged) return; const found = detectIdeas(S.pre); found.forEach(n => { const it = S.ideas.find(i => i.n === n); if (it) it.k++; }); S.autoTagged = 1; save(); renderIdeas(); }
+$('#ideaAdd').onclick = () => { const v = $('#ideaNew').value.trim(); if (!v) return; S.ideas.push({n:v, k:1}); $('#ideaNew').value = ''; save(); renderIdeas(); };
+$('#ideaReset').onclick = () => { S.ideas.forEach(i => i.k = 0); save(); renderIdeas(); };
+renderIdeas();
+
+/* ============ TAHAP 2: prediksi ============ */
+const PW = 520, PH = 300, PX0 = 56, PX1 = 500, PY0 = 150, PA = 118;
+const predPresets = [
+  n => [[0, .9], [.5, 0], [1, .9]].length && Array.from({length:41}, (_, i) => { const u = i/40; return [u, Math.abs(1 - 2*u)*.9]; }),
+  n => Array.from({length:41}, (_, i) => { const u = i/40; return [u, .9 - 1.8*u]; }),
+  n => Array.from({length:61}, (_, i) => { const u = i/60; return [u, u < .4 ? .9*(1 - u/.4) : u < .6 ? 0 : -.9*(u - .6)/.4]; }),
+  n => Array.from({length:41}, (_, i) => { const u = i/40; return [u, u < .5 ? .9*Math.pow(1 - u*2, 2.2) : -.9*Math.pow((u - .5)*2, .45)]; }),
+];
+function drawPredAxes(c, strokes, locked){
+  c.fillStyle = '#fffefb'; c.fillRect(0, 0, PW, PH);
+  c.strokeStyle = '#eee7d8'; c.lineWidth = 1;
+  for (let i = 1; i < 10; i++){ const x = PX0 + (PX1 - PX0)*i/10; c.beginPath(); c.moveTo(x, 20); c.lineTo(x, 280); c.stroke(); }
+  for (let j = -4; j <= 4; j++){ const y = PY0 + j*PA/4; c.beginPath(); c.moveTo(PX0, y); c.lineTo(PX1, y); c.stroke(); }
+  c.strokeStyle = '#18202d'; c.lineWidth = 2;
+  arrow(c, PX0, 282, PX0, 18, '#18202d', 2);
+  arrow(c, PX0 - 6, PY0, PX1 + 12, PY0, '#18202d', 2);
+  text(c, 'v (+ ke atas)', PX0 + 48, 16, '#18202d', '600 12.5px ' + FONT);
+  text(c, 't', PX1 + 12, PY0 - 14, '#18202d', 'italic 600 14px ' + FONT);
+  text(c, 'dilempar', PX0 + 4, 292, '#5b6474', '500 11.5px ' + FONT, 'left');
+  text(c, 'ditangkap', PX1, 292, '#5b6474', '500 11.5px ' + FONT, 'right');
+  text(c, '0', PX0 - 12, PY0, '#5b6474', '600 12px ' + MONO);
+  c.save(); c.strokeStyle = COL.P; c.lineWidth = 3.5; c.lineCap = 'round'; c.lineJoin = 'round';
+  strokes.forEach(s => { c.beginPath(); s.forEach((p, i) => { const x = PX0 + p[0]*(PX1 - PX0), y = PY0 - p[1]*PA; i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke(); });
+  c.restore();
+  if (!strokes.length && !locked) text(c, 'Gambar prediksimu di sini', (PX0 + PX1)/2, 80, '#b0a68f', 'italic 500 15px ' + FONT, 'center', false);
+  if (locked) pill(c, '🔒 terkunci', PX1 - 40, 30, 'rgba(124,77,204,.9)');
+}
+S.pred = S.pred || {t1:'', t1b:'', strokes:[], locked:false};
+const cPred = mk($('#cvPred'), PW, PH), cPredEcho = mk($('#cvPredEcho'), PW, PH);
+function renderPred(){ drawPredAxes(cPred, S.pred.strokes, S.pred.locked); drawPredAxes(cPredEcho, S.pred.strokes, S.pred.locked); }
+(function(){
+  const cv = $('#cvPred'); let drawing = null;
+  cv.addEventListener('pointerdown', e => { if (S.pred.locked) return; cv.setPointerCapture(e.pointerId); const p = ptr(cv, e, PW, PH); drawing = [[(p.x - PX0)/(PX1 - PX0), (PY0 - p.y)/PA]]; S.pred.strokes.push(drawing); renderPred(); });
+  cv.addEventListener('pointermove', e => { if (!drawing) return; const p = ptr(cv, e, PW, PH); drawing.push([+((p.x - PX0)/(PX1 - PX0)).toFixed(3), +((PY0 - p.y)/PA).toFixed(3)]); renderPred(); });
+  const up = () => { if (drawing){ drawing = null; save(); } }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  $$('.ps').forEach(b => b.onclick = () => { if (S.pred.locked) return; S.pred.strokes = [predPresets[+b.dataset.ps]()]; save(); renderPred(); });
+  $('#predClr').onclick = () => { if (S.pred.locked) return; S.pred.strokes = []; save(); renderPred(); };
+  $('#pred1').value = S.pred.t1; $('#pred1b').value = S.pred.t1b;
+  $('#pred1').oninput = e => { S.pred.t1 = e.target.value; save(); };
+  $('#pred1b').oninput = e => { S.pred.t1b = e.target.value; save(); };
+  $('#predLock').onclick = () => {
+    if (S.pred.locked){ S.pred.locked = false; save(); applyLock(); return; }
+    if (!S.pred.t1.trim() || !S.pred.strokes.length){ $('#predStatus').textContent = 'Isi prediksi tertulis dan gambar grafik v–t dulu.'; $('#predStatus').style.color = 'var(--bad)'; return; }
+    S.pred.locked = true; save(); applyLock(); unlockObs(false);
+  };
+})();
+function applyLock(){
+  const L = S.pred.locked;
+  $('#pred1').disabled = $('#pred1b').disabled = L;
+  $('#predLock').textContent = L ? '🔓 Buka kunci (ubah prediksi)' : '🔒 Kunci prediksi';
+  $('#predStatus').style.color = 'var(--muted)';
+  $('#predStatus').textContent = L ? 'Prediksi terkunci. Silakan lakukan pengamatan.' : '';
+  $('#predEcho').innerHTML = L ? `<b>Jika di puncak tidak ada gaya:</b> ${esc(S.pred.t1)}<br><b>Alasan:</b> ${esc(S.pred.t1b || '—')}` : 'Prediksi belum dikunci.';
+  renderPred();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[m])); }
+function unlockObs(demo){ $('#gateObs').classList.remove('locked'); S.obsOpen = 1; save(); }
+applyLock();
+if (S.pred.locked || S.obsOpen) unlockObs();
+
+/* ============ TAHAP 2: Observasi 1 (video + Tracker) ============ */
+(function(){
+  const VW = 420, VH = 600, GW = 620, GH = 520;
+  const cv = $('#cvVid'), c = mk(cv, VW, VH), cg = mk($('#cvGraph'), GW, GH);
+  const PPM = 42, YR = 530, XB = 250, GROUND = 568, FPS = 30;
+  // pemandangan sekolah
+  const bg = off(VW, VH), b = bg.x, r = rng(5);
+  sky(b, VW, 330, '#5aa2ea', '#b3d8f6', '#eef6fc');
+  for (let i = 0; i < 3; i++) cloud(b, r()*VW, 40 + r()*120, 40 + r()*30, r, .85);
+  tree(b, 30, 360, 130, r); tree(b, 395, 350, 120, r);
+  // gedung
+  const bx = 40, bw = 340, by0 = 210;
+  b.fillStyle = '#a3352a'; b.beginPath(); b.moveTo(bx - 16, by0); b.lineTo(bx + bw/2, by0 - 58); b.lineTo(bx + bw + 16, by0); b.closePath(); b.fill();
+  for (let i = 0; i < 22; i++){ b.strokeStyle = 'rgba(60,10,5,.25)'; b.beginPath(); b.moveTo(bx - 16 + i*17, by0); b.lineTo(bx + bw/2, by0 - 58); b.stroke(); }
+  const wg = b.createLinearGradient(0, by0, 0, GROUND); wg.addColorStop(0, '#f3e7cb'); wg.addColorStop(1, '#dac7a0');
+  b.fillStyle = wg; b.fillRect(bx, by0, bw, GROUND - by0);
+  b.fillStyle = 'rgba(0,0,0,.08)'; b.fillRect(bx, by0, bw, 8);
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++){
+    const wx = bx + 22 + col*80, wy = by0 + 26 + row*110, ww = 54, wh = 72;
+    b.fillStyle = '#fbfaf5'; b.fillRect(wx - 5, wy - 5, ww + 10, wh + 10);
+    const gl = b.createLinearGradient(wx, wy, wx + ww, wy + wh); gl.addColorStop(0, '#9cc6e6'); gl.addColorStop(.45, '#5c8fb8'); gl.addColorStop(.5, '#cfe5f5'); gl.addColorStop(.58, '#5f8fb5'); gl.addColorStop(1, '#3b6386');
+    b.fillStyle = gl; b.fillRect(wx, wy, ww, wh);
+    b.fillStyle = '#fbfaf5'; b.fillRect(wx + ww/2 - 2, wy, 4, wh); b.fillRect(wx, wy + wh*.4, ww, 3);
+    b.fillStyle = 'rgba(0,0,0,.12)'; b.fillRect(wx - 6, wy + wh + 5, ww + 12, 4);
+  }
+  b.fillStyle = '#2f6c8f'; b.font = '800 13px ' + FONT; b.textAlign = 'center'; b.fillText('SMA NEGERI', bx + bw/2, by0 - 14);
+  // lantai paving
+  const pg = b.createLinearGradient(0, GROUND, 0, VH); pg.addColorStop(0, '#a9a49a'); pg.addColorStop(1, '#7c776d'); b.fillStyle = pg; b.fillRect(0, GROUND, VW, VH - GROUND);
+  b.strokeStyle = 'rgba(60,55,45,.35)'; b.lineWidth = 1;
+  for (let y = GROUND, k = 0; y < VH; y += 9, k++){ b.beginPath(); b.moveTo(0, y); b.lineTo(VW, y); b.stroke(); for (let x = (k % 2)*14; x < VW; x += 28){ b.beginPath(); b.moveTo(x, y); b.lineTo(x, y + 9); b.stroke(); } }
+  // tiang ukur merah-putih
+  for (let m = 0; m < 24; m++){ b.fillStyle = m % 2 ? '#f6f6f2' : '#cc2b2b'; b.fillRect(XB - 92, GROUND - (m + 1)*PPM/2, 9, PPM/2); }
+  b.fillStyle = 'rgba(0,0,0,.15)'; b.fillRect(XB - 83, GROUND - 12*PPM, 2, 12*PPM);
+  // vignette kamera
+  const vg = b.createRadialGradient(VW/2, VH/2, VH*.35, VW/2, VH/2, VH*.75); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.35)'); b.fillStyle = vg; b.fillRect(0, 0, VW, VH);
+
+  const st = {v0:10, t:0, playing:false, speed:.25, graph:'v', frames:[], paused:false, peakShown:false};
+  function build(){
+    const T = 2*st.v0/g, dt = 1/FPS, N = Math.floor(T/dt), rr_ = rng(Math.round(st.v0*1000) + 3);
+    st.T = T; st.tp = st.v0/g;
+    const F = [];
+    for (let i = 0; i <= N; i++){ const t = i*dt; F.push({t, y:st.v0*t - .5*g*t*t + gauss(rr_)*.0016, x:gauss(rr_)*.002}); }
+    for (let i = 1; i < N; i++) F[i].v = (F[i + 1].y - F[i - 1].y)/(2*dt);
+    for (let i = 2; i < N - 1; i++) F[i].a = (F[i + 1].v - F[i - 1].v)/(2*dt);
+    st.frames = F;
+  }
+  function yAt(t){ return st.v0*t - .5*g*t*t; }
+  function fit(){
+    const pts = st.frames.filter(f => f.v != null && f.t <= st.t + 1e-9);
+    if (pts.length < 3) return null;
+    let n = pts.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    pts.forEach(p => { sx += p.t; sy += p.v; sxx += p.t*p.t; sxy += p.t*p.v; });
+    const m = (n*sxy - sx*sy)/(n*sxx - sx*sx), k = (sy - m*sx)/n; return {m, k, n};
+  }
+  function drawVideo(){
+    blit(c, bg);
+    const y = yAt(Math.min(st.t, st.T)), py = YR - y*PPM;
+    // sumbu Tracker
+    c.save(); c.strokeStyle = 'rgba(214,40,170,.95)'; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(0, YR); c.lineTo(VW, YR); c.moveTo(XB, VH); c.lineTo(XB, 0); c.stroke();
+    c.fillStyle = 'rgba(214,40,170,.95)'; c.font = '600 11px ' + MONO; c.fillText('x', VW - 14, YR - 6); c.fillText('y', XB + 6, 12); c.restore();
+    // tongkat kalibrasi
+    c.save(); const kx = XB - 70; c.strokeStyle = '#2f6dff'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(kx, YR); c.lineTo(kx, YR - 5*PPM); c.stroke();
+    [YR, YR - 5*PPM].forEach(yy => { c.beginPath(); c.moveTo(kx - 7, yy); c.lineTo(kx + 7, yy); c.stroke(); });
+    c.fillStyle = '#2f6dff'; c.font = '700 11px ' + MONO; c.save(); c.translate(kx - 10, YR - 2.5*PPM); c.rotate(-Math.PI/2); c.textAlign = 'center'; c.fillText('5,00 m', 0, 0); c.restore(); c.restore();
+    // bayangan & bola
+    shadow(c, XB, GROUND + 10, 13, GROUND - py);
+    // jejak
+    if ($('#vStrobe').checked){
+      st.frames.forEach((f, i) => { if (f.t > st.t + 1e-9 || i % 2) return; const fy = YR - f.y*PPM, fx = XB + f.x*PPM;
+        c.save(); c.strokeStyle = '#ff2d2d'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(fx - 5, fy); c.lineTo(fx, fy - 5); c.lineTo(fx + 5, fy); c.lineTo(fx, fy + 5); c.closePath(); c.stroke(); c.restore(); });
+    }
+    drawBall(c, XB, py, 13, st.t*5);
+    const v = st.v0 - g*Math.min(st.t, st.T);
+    if ($('#vVec').checked && st.t > 0 && st.t < st.T){
+      if (Math.abs(v) > .15) arrow(c, XB + 22, py, XB + 22, py - v*7, COL.V, 4, 'v', {side:-1});
+      else pill(c, 'v ≈ 0', XB + 52, py - 4, COL.V);
+      arrow(c, XB - 22, py, XB - 22, py + g*6, COL.A, 4, 'a', {side:1});
+    }
+    // overlay ponsel
+    c.save(); c.fillStyle = 'rgba(0,0,0,.45)'; rr(c, 10, 10, 128, 26, 8); c.fill();
+    c.fillStyle = (Math.floor(performance.now()/500) % 2 && st.playing) ? '#ff3b30' : '#ff3b30aa'; c.beginPath(); c.arc(24, 23, 5, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.font = '600 12px ' + MONO; c.textAlign = 'left'; c.textBaseline = 'middle';
+    const vid = st.t*8; c.fillText('SLO-MO 240fps', 34, 23.5);
+    rr(c, VW - 132, 10, 122, 26, 8); c.fillStyle = 'rgba(0,0,0,.45)'; c.fill(); c.fillStyle = '#fff';
+    c.fillText('t = ' + fmt(Math.min(st.t, st.T), 3) + ' s', VW - 124, 23.5);
+    c.fillStyle = 'rgba(0,0,0,.45)'; rr(c, 10, VH - 34, 150, 24, 8); c.fill(); c.fillStyle = '#fff'; c.font = '500 11px ' + MONO;
+    c.fillText('frame ' + Math.floor(Math.min(st.t, st.T)*FPS) + ' / ' + Math.floor(st.T*FPS) + '   ' + (st.speed < 1 ? '¼×' : '1×').replace('¼×', st.speed === .1 ? '⅒×' : '¼×'), 18, VH - 22);
+    c.restore();
+    if (st.t >= st.tp - 1e-6 && st.t <= st.tp + .12) pill(c, 'Puncak: v = 0, tetapi a = 9,8 m/s² ↓', VW/2 + 30, py - 40, 'rgba(18,150,90,.92)');
+  }
+  function drawGraph(){
+    const L = 70, R = GW - 22, T = 26, B = GH - 46;
+    cg.fillStyle = '#fffefb'; cg.fillRect(0, 0, GW, GH);
+    const tmax = st.T*1.04; let ymin, ymax, lab, unit, key;
+    if (st.graph === 'y'){ ymin = -.3; ymax = st.v0*st.v0/(2*g)*1.15; lab = 'y (m)'; key = 'y'; }
+    else if (st.graph === 'v'){ ymax = st.v0*1.2; ymin = -ymax; lab = 'v (m/s)'; key = 'v'; }
+    else { ymin = -16; ymax = 6; lab = 'a (m/s²)'; key = 'a'; }
+    const X = t => L + t/tmax*(R - L), Y = v => B - (v - ymin)/(ymax - ymin)*(B - T);
+    cg.strokeStyle = '#efe8d8'; cg.lineWidth = 1; cg.font = '500 11px ' + MONO; cg.fillStyle = '#7a8090'; cg.textAlign = 'right'; cg.textBaseline = 'middle';
+    const ys = st.graph === 'y' ? 1 : st.graph === 'v' ? 2 : 2;
+    for (let v = Math.ceil(ymin/ys)*ys; v <= ymax; v += ys){ cg.beginPath(); cg.moveTo(L, Y(v)); cg.lineTo(R, Y(v)); cg.stroke(); if (Math.round(v) % (st.graph === 'a' ? 4 : 2) === 0 || st.graph === 'y') cg.fillText(fmt(v, 0), L - 8, Y(v)); }
+    cg.textAlign = 'center';
+    for (let t = 0; t <= tmax; t += .2){ cg.beginPath(); cg.moveTo(X(t), T); cg.lineTo(X(t), B); cg.stroke(); if (Math.round(t*10) % 4 === 0) cg.fillText(fmt(t, 1), X(t), B + 14); }
+    cg.strokeStyle = '#18202d'; cg.lineWidth = 1.6; cg.beginPath(); cg.moveTo(L, T); cg.lineTo(L, B); cg.moveTo(L, Y(0)); cg.lineTo(R, Y(0)); cg.stroke();
+    text(cg, lab, L + 6, 12, '#18202d', '700 12.5px ' + FONT, 'left', false);
+    text(cg, 't (s)', R - 10, B + 32, '#18202d', '700 12.5px ' + FONT, 'right', false);
+    // garis puncak
+    cg.save(); cg.setLineDash([5, 5]); cg.strokeStyle = '#12965a'; cg.lineWidth = 1.4; cg.beginPath(); cg.moveTo(X(st.tp), T); cg.lineTo(X(st.tp), B); cg.stroke(); cg.restore();
+    text(cg, 'puncak', X(st.tp), T + 8, '#12965a', '700 11.5px ' + FONT);
+    // prediksi
+    if (st.graph === 'v' && $('#vPredOv').checked && S.pred.strokes.length){
+      cg.save(); cg.strokeStyle = 'rgba(124,77,204,.75)'; cg.lineWidth = 3; cg.setLineDash([8, 6]); cg.lineCap = 'round';
+      S.pred.strokes.forEach(s => { cg.beginPath(); s.forEach((p, i) => { const x = X(p[0]*st.T), y = Y(p[1]/.9*st.v0); i ? cg.lineTo(x, y) : cg.moveTo(x, y); }); cg.stroke(); });
+      cg.restore();
+      text(cg, '— — prediksimu (skala bebas)', R - 6, T + 10, COL.P, '700 12px ' + FONT, 'right');
+    }
+    // garis teori/fit
+    const f = fit();
+    if (st.graph === 'v' && f){ cg.save(); cg.strokeStyle = 'rgba(35,103,232,.55)'; cg.lineWidth = 2; cg.beginPath(); cg.moveTo(X(0), Y(f.k)); cg.lineTo(X(st.T), Y(f.k + f.m*st.T)); cg.stroke(); cg.restore(); }
+    if (st.graph === 'a'){ cg.save(); cg.strokeStyle = 'rgba(18,150,90,.6)'; cg.lineWidth = 2; cg.setLineDash([6, 4]); cg.beginPath(); cg.moveTo(L, Y(-g)); cg.lineTo(R, Y(-g)); cg.stroke(); cg.restore(); text(cg, 'a = −9,8 m/s²', R - 6, Y(-g) + 16, COL.A, '700 12px ' + FONT, 'right'); }
+    if (st.graph === 'y'){ cg.save(); cg.strokeStyle = 'rgba(214,40,170,.35)'; cg.lineWidth = 2; cg.beginPath(); for (let t = 0; t <= Math.min(st.t, st.T); t += .01){ const y = Y(yAt(t)); t ? cg.lineTo(X(t), y) : cg.moveTo(X(t), y); } cg.stroke(); cg.restore(); }
+    // titik data
+    const col = st.graph === 'y' ? '#d628aa' : st.graph === 'v' ? COL.V : COL.A;
+    st.frames.forEach(p => { if (p[key] == null || p.t > st.t + 1e-9) return; cg.fillStyle = col; cg.beginPath(); cg.arc(X(p.t), Y(p[key]), 3.2, 0, 7); cg.fill(); });
+    if (st.graph === 'v' && f && f.n > 3){ pill(cg, `kemiringan = ${fmt(f.m, 2)} m/s²`, L + 110, B - 20, 'rgba(35,103,232,.92)'); }
+    if (st.graph === 'a' && st.t > st.tp){ const near = st.frames.reduce((a, p) => p.a != null && Math.abs(p.t - st.tp) < Math.abs(a.t - st.tp) ? p : a, {t:-9}); if (near.a != null){ cg.strokeStyle = '#d23b3b'; cg.lineWidth = 2; cg.beginPath(); cg.arc(X(near.t), Y(near.a), 9, 0, 7); cg.stroke(); pill(cg, 'di puncak a ≠ 0', X(near.t), Y(near.a) - 26, 'rgba(210,59,59,.92)'); } }
+  }
+  function readout(){
+    const t = Math.min(st.t, st.T), f = fit();
+    $('#vRead').innerHTML = `<div>t<b>${fmt(t, 3)} s</b></div><div>y<b>${fmt(yAt(t), 2)} m</b></div><div>v<b>${fmt(st.v0 - g*t, 2)} m/s</b></div><div>a (dari kemiringan v–t)<b>${f ? fmt(f.m, 2) + ' m/s²' : '—'}</b></div>`;
+  }
+  function render(){ drawVideo(); drawGraph(); readout(); }
+  function peakCallout(show){ const el = $('#vCall'); el.classList.toggle('on', show);
+    if (show) el.innerHTML = `<b>Bola di puncak.</b> Kecepatan bola nol sesaat, tetapi grafik v–t tidak mendatar: garisnya tetap miring dengan kemiringan sekitar −9,8 m/s². Jadi percepatan bola di puncak <b>tidak nol</b>, dan menurut Hukum II Newton masih ada gaya yang bekerja, yaitu gaya berat dari Bumi. Bandingkan dengan prediksimu: jika di puncak benar-benar tidak ada gaya, bola seharusnya tetap diam melayang di sana.`; }
+  addSim(2, dt => {
+    if (st.playing){
+      const prev = st.t; st.t += dt*st.speed;
+      if ($('#vPeak').checked && !st.peakShown && prev < st.tp && st.t >= st.tp){ st.t = st.tp; st.playing = false; st.peakShown = true; peakCallout(true); $('#vPlay').textContent = '▶ Lanjutkan'; }
+      if (st.t >= st.T){ st.t = st.T; st.playing = false; $('#vPlay').textContent = '▶ Putar lagi'; }
+    }
+    render();
+  });
+  $('#vPlay').onclick = () => { if (st.t >= st.T){ st.t = 0; st.peakShown = false; peakCallout(false); } st.playing = !st.playing; $('#vPlay').textContent = st.playing ? '⏸ Jeda' : '▶ Lanjutkan'; };
+  $('#vStep').onclick = () => { st.playing = false; st.t = Math.min(st.T, Math.floor(st.t*FPS + 1.0001)/FPS); if (st.t >= st.tp && !st.peakShown){ st.peakShown = true; peakCallout(true); } $('#vPlay').textContent = '▶ Lanjutkan'; };
+  $('#vReset').onclick = () => { st.t = 0; st.playing = false; st.peakShown = false; peakCallout(false); $('#vPlay').textContent = '▶ Putar'; };
+  segBind('#vSpeed', b => st.speed = +b.dataset.sp);
+  segBind('#vTabs', b => st.graph = b.dataset.g);
+  $('#vV0').oninput = e => { st.v0 = +e.target.value; $('#vV0o').textContent = fmt(st.v0, 1) + ' m/s'; build(); st.t = 0; st.playing = false; st.peakShown = false; peakCallout(false); $('#vPlay').textContent = '▶ Putar'; };
+  build(); render();
+})();
+
+/* ============ TAHAP 2: Observasi 2 (mobil mainan) ============ */
+(function(){
+  const W = 960, H = 500, c = mk($('#cvCar'), W, H);
+  const X0 = 128, X1 = 940, LEN = 4.2, PPM = (X1 - X0)/LEN, V0 = 1.4;
+  const lanes = [
+    {n:'Karpet', mu:.25, col:'#d7263d'}, {n:'Lantai keramik', mu:.06, col:'#1f6fd6'}, {n:'Kaca', mu:.03, col:'#f0a400'}, {n:'Permukaan imajiner', mu:.012, col:'#16a36b', custom:true},
+  ];
+  S.car = S.car || {trials:[[], [], [], []]};
+  const LH = 118;
+  lanes.forEach((l, i) => { l.y = 14 + i*LH; l.x = 0; l.v = 0; l.run = false; l.launch = 0; l.time = 0; });
+  // tekstur
+  function tex(i){
+    const o = off(W, 40), x = o.x, r = rng(31 + i);
+    if (i === 0){ x.fillStyle = '#8b2f3c'; x.fillRect(0, 0, W, 40); for (let k = 0; k < 9000; k++){ x.strokeStyle = `rgba(${r() < .5 ? '60,10,20' : '190,90,100'},${.25 + r()*.35})`; x.lineWidth = 1; const px = r()*W, py = r()*40; x.beginPath(); x.moveTo(px, py); x.lineTo(px + (r() - .5)*2.4, py - 1 - r()*2.5); x.stroke(); } }
+    if (i === 1){ const gr = x.createLinearGradient(0, 0, 0, 40); gr.addColorStop(0, '#f1ece2'); gr.addColorStop(1, '#ddd5c6'); x.fillStyle = gr; x.fillRect(0, 0, W, 40); for (let px = 0; px < W; px += 58){ x.fillStyle = `rgba(255,255,255,${.25 + r()*.3})`; x.fillRect(px + 2, 2, 54, 12); x.fillStyle = '#b9b0a0'; x.fillRect(px, 0, 2, 40); } x.fillStyle = '#c4bba9'; x.fillRect(0, 20, W, 1.5); for (let k = 0; k < 400; k++){ x.fillStyle = `rgba(120,110,95,${r()*.15})`; x.fillRect(r()*W, r()*40, 2, 1); } }
+    if (i === 2){ const gr = x.createLinearGradient(0, 0, 0, 40); gr.addColorStop(0, '#d9eef6'); gr.addColorStop(1, '#a7cfdf'); x.fillStyle = gr; x.fillRect(0, 0, W, 40); x.save(); x.globalAlpha = .55; for (let k = 0; k < 14; k++){ const px = r()*W; const sg = x.createLinearGradient(px, 0, px + 60, 40); sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(.5, 'rgba(255,255,255,.9)'); sg.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = sg; x.beginPath(); x.moveTo(px, 0); x.lineTo(px + 18, 0); x.lineTo(px + 46, 40); x.lineTo(px + 28, 40); x.closePath(); x.fill(); } x.restore(); }
+    if (i === 3){ const gr = x.createLinearGradient(0, 0, 0, 40); gr.addColorStop(0, '#e8fbff'); gr.addColorStop(1, '#bfe9f2'); x.fillStyle = gr; x.fillRect(0, 0, W, 40); x.strokeStyle = 'rgba(80,170,200,.35)'; x.lineWidth = 1; for (let px = 0; px < W; px += 24){ x.beginPath(); x.moveTo(px, 0); x.lineTo(px - 10, 40); x.stroke(); } x.fillStyle = 'rgba(255,255,255,.6)'; x.fillRect(0, 3, W, 3); }
+    return o;
+  }
+  lanes.forEach((l, i) => l.tex = tex(i));
+  const wall = off(W, H); (function(){ const x = wall.x; const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#efe9dc'); gr.addColorStop(1, '#e2d9c6'); x.fillStyle = gr; x.fillRect(0, 0, W, H); const r = rng(9); for (let k = 0; k < 3000; k++){ x.fillStyle = `rgba(120,100,70,${r()*.05})`; x.fillRect(r()*W, r()*H, 2, 2); } })();
+  function drawCar(x, yb, rot, col){
+    c.save(); c.translate(x, yb);
+    c.fillStyle = 'rgba(0,0,0,.28)'; c.filter = 'blur(2px)'; c.beginPath(); c.ellipse(0, 1, 36, 4.5, 0, 0, 7); c.fill(); c.filter = 'none';
+    const bg = c.createLinearGradient(0, -36, 0, -6); bg.addColorStop(0, '#ffffff'); bg.addColorStop(.12, col); bg.addColorStop(.7, col); bg.addColorStop(1, 'rgba(0,0,0,.55)');
+    c.beginPath(); c.moveTo(-33, -9); c.lineTo(-33, -18); c.quadraticCurveTo(-32, -23, -25, -23); c.lineTo(-15, -24); c.lineTo(-8, -34); c.quadraticCurveTo(-5, -37, 0, -37); c.lineTo(10, -37); c.quadraticCurveTo(15, -37, 18, -32); c.lineTo(23, -24); c.lineTo(30, -22); c.quadraticCurveTo(35, -21, 35, -15); c.lineTo(35, -9); c.closePath();
+    c.fillStyle = col; c.fill(); c.fillStyle = bg; c.globalAlpha = .55; c.fill(); c.globalAlpha = 1; c.strokeStyle = 'rgba(0,0,0,.45)'; c.lineWidth = 1; c.stroke();
+    const wg = c.createLinearGradient(0, -34, 0, -24); wg.addColorStop(0, '#9fc3e0'); wg.addColorStop(1, '#22344a');
+    c.beginPath(); c.moveTo(-11, -25); c.lineTo(-5, -33); c.lineTo(10, -33); c.lineTo(17, -25); c.closePath(); c.fillStyle = wg; c.fill();
+    c.fillStyle = col; c.fillRect(2, -33, 3, 8);
+    c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-6, -31); c.lineTo(-2, -31); c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.moveTo(-30, -20); c.lineTo(-16, -21); c.moveTo(22, -21); c.lineTo(31, -19.5); c.stroke();
+    c.fillStyle = '#fff2a8'; rr(c, 31, -19, 4, 4, 1.5); c.fill(); c.fillStyle = '#c11'; c.fillRect(-33, -18, 2.5, 4);
+    c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(-33, -11, 68, 2.5);
+    [-20, 21].forEach(wx => {
+      c.save(); c.translate(wx, -8);
+      const tg = c.createRadialGradient(-2, -2, 1, 0, 0, 8); tg.addColorStop(0, '#444'); tg.addColorStop(1, '#0d0d0d');
+      c.fillStyle = tg; c.beginPath(); c.arc(0, 0, 8, 0, 7); c.fill();
+      const rg = c.createRadialGradient(-1, -1, 0, 0, 0, 4.6); rg.addColorStop(0, '#f4f4f4'); rg.addColorStop(1, '#8a8f98'); c.fillStyle = rg; c.beginPath(); c.arc(0, 0, 4.6, 0, 7); c.fill();
+      c.rotate(rot); c.strokeStyle = '#555b66'; c.lineWidth = 1.2; for (let k = 0; k < 5; k++){ c.rotate(Math.PI*2/5); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 4.4); c.stroke(); }
+      c.fillStyle = '#333'; c.beginPath(); c.arc(0, 0, 1.2, 0, 7); c.fill();
+      c.restore();
+    });
+    c.restore();
+  }
+  function drawLauncher(l, ext){
+    const yb = l.y + 64;
+    // dinding
+    const wg = c.createLinearGradient(30, 0, 66, 0); wg.addColorStop(0, '#6c5a43'); wg.addColorStop(1, '#4a3c2b'); c.fillStyle = wg; rr(c, 30, l.y + 22, 34, 50, 5); c.fill();
+    const px = 66 + 26 + ext*22; // ujung plunger
+    c.strokeStyle = '#9aa0a8'; c.lineWidth = 2.2; c.beginPath();
+    const n = 8; for (let k = 0; k <= n*2; k++){ const xx = 64 + (px - 70 - 64)*k/(n*2); const yy = yb - 16 + (k % 2 ? -7 : 7); k ? c.lineTo(xx, yy) : c.moveTo(xx, yy); } c.stroke();
+    const pg = c.createLinearGradient(0, yb - 28, 0, yb - 4); pg.addColorStop(0, '#d9dde3'); pg.addColorStop(1, '#7b828d'); c.fillStyle = pg; rr(c, px - 8, yb - 30, 8, 28, 2); c.fill();
+  }
+  function drawTape(l){
+    const y = l.y + 70; c.fillStyle = '#f2c230'; c.fillRect(X0, y, X1 - X0, 13); c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(X0, y + 11, X1 - X0, 2);
+    c.strokeStyle = '#3b2e00'; c.fillStyle = '#3b2e00'; c.font = '600 9.5px ' + MONO; c.textAlign = 'center';
+    for (let k = 0; k <= LEN*10 + .01; k++){ const x = X0 + k/10*PPM; c.lineWidth = k % 5 ? .8 : 1.3; c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + (k % 5 ? 4 : 7)); c.stroke(); if (k % 5 === 0) c.fillText((k/10).toString().replace('.', ','), x, y + 11.5); }
+  }
+  function render(){
+    blit(c, wall);
+    lanes.forEach((l, i) => {
+      // slab
+      c.drawImage(l.tex.c, 0, 0, l.tex.c.width, l.tex.c.height, X0 - 70, l.y + 48, X1 - X0 + 85, 22);
+      const fg = c.createLinearGradient(0, l.y + 70, 0, l.y + 92); fg.addColorStop(0, 'rgba(0,0,0,.25)'); fg.addColorStop(1, 'rgba(0,0,0,.05)'); c.fillStyle = fg; c.fillRect(X0 - 70, l.y + 70, X1 - X0 + 85, 20);
+      drawTape(l);
+      drawLauncher(l, l.launch);
+      const lap = l.custom ? Math.floor(l.x/LEN) : 0;
+      const xm = l.custom ? l.x - lap*LEN : Math.min(l.x, LEN + .3);
+      const cx = X0 + xm*PPM - 36;
+      if (l.custom && l.x > 0.01 && l.mu === 0 && l.run){ c.save(); c.globalAlpha = .25; drawCar(cx - 30, l.y + 63, 0, l.col); c.restore(); }
+      // pantulan kaca
+      if (i >= 2){ c.save(); c.globalAlpha = .18; c.translate(0, (l.y + 63)*2 - 3); c.scale(1, -1); drawCar(cx + 36, l.y + 63, l.x/.008, l.col); c.restore(); }
+      drawCar(cx + 36, l.y + 63, l.x/.008, l.col);
+      // label
+      c.save(); c.fillStyle = 'rgba(24,32,45,.86)'; rr(c, X0 - 116, l.y + 2, 0, 0, 0); c.restore();
+      text(c, l.n + (l.custom ? '' : ''), X0 - 60, l.y + 10, '#18202d', '700 13.5px ' + FONT, 'left', true);
+      text(c, 'μ ≈ ' + fmt(l.mu, 3), X0 + 92, l.y + 10, '#5b6474', '600 12px ' + MONO, 'left', true);
+      let msg = '';
+      if (l.run) msg = 'v = ' + fmt(l.v, 2) + ' m/s · jarak ' + fmt(l.x, 2) + ' m';
+      else if (l.last != null) msg = l.last === Infinity ? 'Tidak berhenti! sudah ' + fmt(l.x, 1) + ' m dan masih bergerak' : 'Berhenti setelah ' + fmt(l.last, 2) + ' m';
+      if (msg) text(c, msg, X1, l.y + 10, l.last === Infinity ? '#0f7a4e' : '#18202d', '700 13px ' + FONT, 'right', true);
+      if (l.custom && lap > 0) pill(c, 'putaran layar ke-' + (lap + 1), X1 - 80, l.y + 34, 'rgba(22,163,107,.9)');
+      if (!l.run && l.last != null && l.last !== Infinity && !l.custom){ const fx = X0 + l.last*PPM; c.save(); c.strokeStyle = l.col; c.setLineDash([3, 3]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(fx, l.y + 40); c.lineTo(fx, l.y + 84); c.stroke(); c.restore(); }
+    });
+  }
+  function launch(i){ const l = lanes[i]; if (l.run) return; const r = Math.random; l.x = 0; l.v = V0*(1 + (l.custom ? 0 : (r() - .5)*.05)); l.run = true; l.launch = 1; l.time = 0; l.last = null; if (l.custom) l.mu = +$('#carMu').value; }
+  addSim(2, dt => {
+    lanes.forEach((l, i) => {
+      if (l.launch > 0) l.launch = Math.max(0, l.launch - dt*6);
+      if (!l.run) return;
+      const sub = 4; for (let k = 0; k < sub; k++){ const h = dt/sub; const dv = l.mu*g*h; if (l.v <= dv){ l.x += l.v*l.v/(2*l.mu*g || 1e9); l.v = 0; break; } l.x += (l.v - dv/2)*h; l.v -= dv; }
+      l.time += dt;
+      if (l.v <= 0){ l.run = false; l.last = l.x; S.car.trials[i].push(+l.x.toFixed(2)); if (S.car.trials[i].length > 3) S.car.trials[i].shift(); save(); table(); chart(); }
+      else if (l.custom && (l.time > 14 || l.x > 40)){ l.run = false; l.last = Infinity; S.car.trials[3] = [Infinity]; save(); table(); chart(); }
+    });
+    render();
+  });
+  function avg(a){ const f = a.filter(isFinite); return f.length ? f.reduce((s, x) => s + x, 0)/f.length : null; }
+  function table(){
+    let h = '<tr><th>Permukaan</th><th>μ</th><th>Perc. 1</th><th>Perc. 2</th><th>Perc. 3</th><th>Rata-rata</th></tr>';
+    lanes.forEach((l, i) => { const t = S.car.trials[i]; const mu = l.custom ? (t.length ? '' : '') + fmt(+$('#carMu').value, 3) : fmt(l.mu, 2);
+      const cells = [0, 1, 2].map(k => t[k] == null ? '—' : t[k] === Infinity || t[k] === null && false ? '∞' : (isFinite(t[k]) ? fmt(t[k], 2) + ' m' : 'tidak berhenti'));
+      const a = avg(t); h += `<tr><td><b style="color:${l.col}">●</b> ${l.n}</td><td class="n">${mu}</td>${cells.map(x => `<td class="n">${x}</td>`).join('')}<td class="n"><b>${t.some(x => x === Infinity) ? '∞' : a == null ? '—' : fmt(a, 2) + ' m'}</b></td></tr>`; });
+    $('#carTable').innerHTML = h;
+  }
+  const CW = 520, CH = 320, cc = mk($('#cvCarChart'), CW, CH);
+  function chart(){
+    const L = 60, R = CW - 20, T = 26, B = CH - 44, mx = .3, my = 6;
+    cc.fillStyle = '#fffefb'; cc.fillRect(0, 0, CW, CH);
+    const X = m => L + m/mx*(R - L), Y = d => B - Math.min(d, my*1.05)/my*(B - T);
+    cc.strokeStyle = '#efe8d8'; cc.lineWidth = 1; cc.fillStyle = '#7a8090'; cc.font = '500 11px ' + MONO; cc.textAlign = 'right'; cc.textBaseline = 'middle';
+    for (let d = 0; d <= my; d++){ cc.beginPath(); cc.moveTo(L, Y(d)); cc.lineTo(R, Y(d)); cc.stroke(); cc.fillText(d, L - 8, Y(d)); }
+    cc.textAlign = 'center'; for (let m = 0; m <= mx + 1e-6; m += .05){ cc.beginPath(); cc.moveTo(X(m), T); cc.lineTo(X(m), B); cc.stroke(); cc.fillText(fmt(m, 2), X(m), B + 14); }
+    cc.strokeStyle = '#18202d'; cc.lineWidth = 1.5; cc.beginPath(); cc.moveTo(L, T); cc.lineTo(L, B); cc.lineTo(R, B); cc.stroke();
+    text(cc, 'jarak sampai berhenti (m)', L + 4, 12, '#18202d', '700 12px ' + FONT, 'left', false);
+    text(cc, 'koefisien gesekan μ', R, B + 32, '#18202d', '700 12px ' + FONT, 'right', false);
+    const pts = lanes.slice(0, 3).map((l, i) => ({mu:l.mu, d:avg(S.car.trials[i]), col:l.col})).filter(p => p.d != null);
+    if (pts.length >= 2){
+      cc.save(); cc.strokeStyle = 'rgba(24,32,45,.45)'; cc.setLineDash([6, 5]); cc.lineWidth = 2; cc.beginPath();
+      for (let m = .3; m >= .0105; m -= .001){ const d = V0*V0/(2*g*m); const y = Y(d); m === .3 ? cc.moveTo(X(m), y) : cc.lineTo(X(m), y); } cc.stroke(); cc.restore();
+      arrow(cc, X(.014), Y(4.6), X(.006), T + 2, '#16a36b', 3, null);
+      text(cc, 'μ → 0 : jarak → ∞', X(.02) + 70, T + 22, '#0f7a4e', '700 13px ' + FONT, 'center');
+    }
+    pts.forEach(p => { cc.fillStyle = p.col; cc.beginPath(); cc.arc(X(p.mu), Y(p.d), 6.5, 0, 7); cc.fill(); cc.strokeStyle = '#fff'; cc.lineWidth = 2; cc.stroke(); });
+    if (pts.length < 2) text(cc, 'Ukur minimal dua permukaan untuk melihat trennya', (L + R)/2, (T + B)/2, '#a49a85', 'italic 500 13px ' + FONT, 'center', false);
+  }
+  $('#carAll').onclick = () => [0, 1, 2].forEach(launch);
+  [0, 1, 2, 3].forEach(i => $('#carL' + i).onclick = () => launch(i));
+  $('#carMu').oninput = e => { const v = +e.target.value; $('#carMuo').textContent = fmt(v, 3); if (!lanes[3].run) lanes[3].mu = v; table(); };
+  $('#carReset').onclick = () => { S.car = {trials:[[], [], [], []]}; lanes.forEach(l => { l.last = null; l.x = 0; l.run = false; }); save(); table(); chart(); };
+  table(); chart(); render();
+})();
+
+/* ============ TAHAP 2: Observasi 3 (peti, ala PhET) ============ */
+(function(){
+  const W = 960, H = 420, c = mk($('#cvBox'), W, H), GY = 320, PPM = 70, M = 50;
+  const st = {x:0, v:0, F:0, mu:0, msg:'', msgT:0, hist:[]};
+  const crate = off(124, 112); (function(){ const x = crate.x, r = rng(4);
+    const base = x.createLinearGradient(0, 0, 124, 112); base.addColorStop(0, '#d9a866'); base.addColorStop(1, '#a8743b'); x.fillStyle = base; x.fillRect(0, 0, 124, 112);
+    for (let k = 0; k < 6; k++){ x.fillStyle = `rgba(90,50,15,${.1 + r()*.12})`; x.fillRect(0, k*18.6, 124, 1.5); }
+    for (let k = 0; k < 160; k++){ x.strokeStyle = `rgba(110,60,20,${.08 + r()*.15})`; x.lineWidth = .8; const y = r()*112; x.beginPath(); x.moveTo(0, y); x.bezierCurveTo(40, y + (r() - .5)*6, 80, y + (r() - .5)*6, 124, y + (r() - .5)*4); x.stroke(); }
+    const fr = '#7e5126'; x.fillStyle = fr; x.fillRect(0, 0, 124, 12); x.fillRect(0, 100, 124, 12); x.fillRect(0, 0, 12, 112); x.fillRect(112, 0, 12, 112);
+    x.save(); x.beginPath(); x.rect(12, 12, 100, 88); x.clip(); x.strokeStyle = fr; x.lineWidth = 12; x.beginPath(); x.moveTo(12, 100); x.lineTo(112, 12); x.stroke(); x.restore();
+    x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(0, 0, 124, 3);
+    [[6, 6], [118, 6], [6, 106], [118, 106]].forEach(([a, b]) => { x.fillStyle = '#3d2a14'; x.beginPath(); x.arc(a, b, 2.2, 0, 7); x.fill(); });
+    x.fillStyle = 'rgba(40,20,5,.55)'; x.font = '800 16px ' + MONO; x.textAlign = 'center'; x.fillText('50 kg', 62, 62); })();
+  const back = off(W, GY); (function(){ const x = back.x; const gr = x.createLinearGradient(0, 0, 0, GY); gr.addColorStop(0, '#cfe3f3'); gr.addColorStop(1, '#eef5fa'); x.fillStyle = gr; x.fillRect(0, 0, W, GY); })();
+  function groundTex(mu){
+    const o = off(280, H - GY), x = o.x, r = rng(8);
+    if (mu < .005){ const gr = x.createLinearGradient(0, 0, 0, H - GY); gr.addColorStop(0, '#e9fbff'); gr.addColorStop(1, '#a9dceb'); x.fillStyle = gr; x.fillRect(0, 0, 280, H - GY); x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 2; for (let k = 0; k < 6; k++){ const px = r()*280; x.beginPath(); x.moveTo(px, 4); x.lineTo(px + 40, H - GY); x.stroke(); } }
+    else { const gr = x.createLinearGradient(0, 0, 0, H - GY); gr.addColorStop(0, '#b98552'); gr.addColorStop(1, '#7a4e28'); x.fillStyle = gr; x.fillRect(0, 0, 280, H - GY);
+      for (let k = 0; k < 5; k++){ x.fillStyle = `rgba(60,30,10,.35)`; x.fillRect(0, k*20, 280, 1.5); }
+      for (let k = 0; k < 18; k++){ x.fillStyle = 'rgba(60,30,10,.35)'; x.fillRect(r()*280, Math.floor(r()*5)*20, 1.5, 20); }
+      for (let k = 0; k < 220; k++){ x.strokeStyle = `rgba(80,40,10,${r()*.18})`; x.beginPath(); const y = r()*(H - GY); x.moveTo(r()*280, y); x.lineTo(r()*280, y + (r() - .5)*2); x.stroke(); } }
+    return o;
+  }
+  let gtIce = groundTex(0), gtWood = groundTex(.2);
+  function gauge(cx, cy, R, v){
+    c.save(); c.translate(cx, cy);
+    c.fillStyle = 'rgba(0,0,0,.18)'; c.filter = 'blur(6px)'; c.beginPath(); c.arc(0, 4, R, 0, 7); c.fill(); c.filter = 'none';
+    const gr = c.createRadialGradient(-R*.3, -R*.3, R*.1, 0, 0, R); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#dfe3e9'); c.fillStyle = gr; c.beginPath(); c.arc(0, 0, R, 0, 7); c.fill();
+    c.lineWidth = 5; c.strokeStyle = '#3b4250'; c.stroke();
+    const a0 = Math.PI*.8, a1 = Math.PI*2.2, vm = 10;
+    for (let k = 0; k <= vm; k++){ const a = a0 + (a1 - a0)*k/vm; c.strokeStyle = '#18202d'; c.lineWidth = k % 2 ? 1.2 : 2.2; c.beginPath(); c.moveTo(Math.cos(a)*R*.78, Math.sin(a)*R*.78); c.lineTo(Math.cos(a)*R*.9, Math.sin(a)*R*.9); c.stroke(); if (k % 2 === 0){ c.fillStyle = '#18202d'; c.font = '600 10px ' + MONO; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(k, Math.cos(a)*R*.62, Math.sin(a)*R*.62); } }
+    const a = a0 + (a1 - a0)*Math.min(1, Math.abs(v)/vm); c.strokeStyle = '#d23b3b'; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.moveTo(-Math.cos(a)*8, -Math.sin(a)*8); c.lineTo(Math.cos(a)*R*.82, Math.sin(a)*R*.82); c.stroke();
+    c.fillStyle = '#18202d'; c.beginPath(); c.arc(0, 0, 5, 0, 7); c.fill();
+    c.font = '600 10.5px ' + FONT; c.textAlign = 'center'; c.fillStyle = '#5b6474'; c.fillText('kelajuan (m/s)', 0, R*.42); c.font = '700 14px ' + MONO; c.fillStyle = '#18202d'; c.fillText(fmt(Math.abs(v), 2), 0, R*.66);
+    c.restore();
+  }
+  function forces(){
+    const N = M*g, fk = st.mu*N, fs = st.mu*1.25*N;
+    let f = 0;
+    if (Math.abs(st.v) < 1e-4){ if (Math.abs(st.F) <= fs) f = -st.F; else f = -Math.sign(st.F)*fk; }
+    else f = -Math.sign(st.v)*fk;
+    return {f, N, sum:st.F + f};
+  }
+  function render(){
+    const cam = st.x*PPM;
+    c.drawImage(back.c, 0, 0, W, GY);
+    // dinding gudang berparalaks
+    c.save(); const off_ = -(cam*.35) % 160;
+    for (let x = off_ - 160; x < W + 160; x += 160){ c.fillStyle = '#b8c7d4'; c.fillRect(x, 40, 10, GY - 40); c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x + 20, 70, 120, 70); c.fillStyle = 'rgba(90,110,130,.25)'; c.fillRect(x + 20, 140, 120, 4); }
+    c.fillStyle = '#a7b8c6'; c.fillRect(0, GY - 46, W, 46); c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(0, GY - 46, W, 3); c.restore();
+    // lantai
+    const gt = st.mu < .005 ? gtIce : gtWood; const tw = 280, o2 = -(cam % tw);
+    for (let x = o2 - tw; x < W + tw; x += tw) c.drawImage(gt.c, x, GY, tw, H - GY);
+    // penanda jarak
+    c.save(); c.fillStyle = 'rgba(24,32,45,.75)'; c.font = '600 12px ' + MONO; c.textAlign = 'center';
+    const m0 = Math.floor((cam - W/2)/PPM) - 1; for (let m = m0; m < m0 + W/PPM + 3; m++){ const x = W/2 + m*PPM - cam; c.fillRect(x - 1, GY, 2, 10); if (m % 2 === 0) c.fillText(m + ' m', x, GY + 24); }
+    c.restore();
+    // peti
+    const cx = W/2, by = GY;
+    c.save(); c.fillStyle = 'rgba(0,0,0,.25)'; c.filter = 'blur(4px)'; c.fillRect(cx - 60, by - 6, 124, 10); c.filter = 'none'; c.restore();
+    if (st.mu < .005){ c.save(); c.globalAlpha = .18; c.translate(0, by*2); c.scale(1, -1); c.drawImage(crate.c, cx - 62, by - 112, 124, 112); c.restore(); }
+    c.drawImage(crate.c, cx - 62, by - 112, 124, 112);
+    // tangan pendorong (sarung tangan sederhana)
+    if (Math.abs(st.F) > 0){ const sx = st.F > 0 ? cx - 62 : cx + 62, dir = st.F > 0 ? -1 : 1; c.save(); c.translate(sx, by - 56); c.scale(dir, 1);
+      const gg = c.createLinearGradient(0, -14, 0, 14); gg.addColorStop(0, '#ffcf6a'); gg.addColorStop(1, '#d9901a'); c.fillStyle = gg; rr(c, 2, -15, 26, 30, 9); c.fill(); c.fillStyle = '#3b4a63'; rr(c, 26, -11, 60, 22, 8); c.fill(); c.restore(); }
+    const fo = forces(), k = .38, yF = by - 56, show = $('#bxVal').checked;
+    if (Math.abs(st.F) > .5) arrow(c, cx, yF, cx + st.F*k, yF, '#f08c00', 7, show ? 'F dorong = ' + Math.round(Math.abs(st.F)) + ' N' : 'F dorong', {side:-1, ly:-10});
+    if (Math.abs(fo.f) > .5) arrow(c, cx, by - 8, cx + fo.f*k, by - 8, COL.F, 7, show ? 'f gesek = ' + Math.round(Math.abs(fo.f)) + ' N' : 'f gesek', {side:1, ly:10});
+    if ($('#bxSum').checked){ if (Math.abs(fo.sum) > .5) arrow(c, cx, by - 150, cx + fo.sum*k, by - 150, '#7c4dcc', 7, show ? 'ΣF = ' + Math.round(Math.abs(fo.sum)) + ' N' : 'ΣF', {side:-1});
+      else pill(c, 'ΣF = 0', cx, by - 150, 'rgba(124,77,204,.92)'); }
+    if (Math.abs(st.v) > .02) arrow(c, cx, by - 190, cx + st.v*22, by - 190, COL.V, 6, 'v = ' + fmt(Math.abs(st.v), 2) + ' m/s', {side:-1});
+    else pill(c, 'v = 0', cx, by - 190, 'rgba(35,103,232,.9)');
+    gauge(W - 92, 92, 66, st.v);
+    // grafik v-t mini
+    c.save(); c.fillStyle = 'rgba(255,255,255,.88)'; rr(c, 18, 18, 250, 120, 10); c.fill(); c.strokeStyle = '#d8dee6'; c.stroke();
+    c.fillStyle = '#5b6474'; c.font = '600 11px ' + FONT; c.fillText('v–t (10 s terakhir)', 28, 34);
+    c.strokeStyle = '#18202d'; c.lineWidth = 1; c.beginPath(); c.moveTo(30, 42); c.lineTo(30, 128); c.lineTo(258, 128); c.stroke();
+    c.strokeStyle = COL.V; c.lineWidth = 2; c.beginPath(); st.hist.forEach((v, i) => { const x = 30 + i/(st.hist.length - 1 || 1)*228, y = 128 - Math.min(10, Math.abs(v))/10*82; i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke(); c.restore();
+    if (st.msgT > 0){ pill(c, st.msg, W/2, 30, 'rgba(24,32,45,.9)'); }
+    if (st.mu < .005 && Math.abs(st.F) < .5 && Math.abs(st.v) > .05) pill(c, 'Tanpa gesekan & tanpa dorongan: ΣF = 0 → kecepatan TETAP', W/2, GY + 70, 'rgba(18,150,90,.92)');
+  }
+  let acc = 0;
+  addSim(2, dt => {
+    const fo = forces(); const a = fo.sum/M; const v1 = st.v + a*dt;
+    if (st.v !== 0 && Math.sign(v1) !== Math.sign(st.v) && Math.abs(st.F) <= st.mu*1.25*M*g) st.v = 0; else st.v = v1;
+    if (Math.abs(st.v) > 10){ st.v = Math.sign(st.v)*10; st.F = 0; $('#bxF').value = 0; $('#bxFo').textContent = '0 N'; st.msg = 'Kelajuan 10 m/s: pendorong tidak dapat menyusul, dorongan dilepas'; st.msgT = 3; }
+    st.x += st.v*dt; st.msgT -= dt;
+    acc += dt; if (acc > .1){ acc = 0; st.hist.push(st.v); if (st.hist.length > 100) st.hist.shift(); }
+    render();
+  });
+  const setF = v => { st.F = v; $('#bxF').value = v; $('#bxFo').textContent = Math.round(v) + ' N'; };
+  $('#bxF').oninput = e => setF(+e.target.value);
+  $('#bxPush').onclick = () => setF(150);
+  $('#bxRelease').onclick = () => setF(0);
+  const setMu = v => { st.mu = v; $('#bxMu').value = v; $('#bxMuo').textContent = fmt(v, 2); };
+  $('#bxMu').oninput = e => setMu(+e.target.value);
+  $('#bxNoFric').onclick = () => setMu(0); $('#bxFric').onclick = () => setMu(.2);
+  $('#bxReset').onclick = () => { st.x = 0; st.v = 0; setF(0); st.hist = []; };
+  render();
+})();
+
+/* ============ TAHAP 3: FBD trainer ============ */
+(function(){
+  const W = 600, H = 440, GY = 400, c = mk($('#cvFbd'), W, H);
+  const bg = sceneOutdoor(W, H, GY, 21, {trees:3, clouds:3});
+  const PH = [
+    {id:'tangan', n:'Sedang dilempar (masih di tangan)', v:1},
+    {id:'naik', n:'Naik (sudah lepas)', v:1},
+    {id:'puncak', n:'Di puncak', v:0},
+    {id:'turun', n:'Turun', v:-1},
+    {id:'lantai', n:'Diam di lantai', v:0},
+  ];
+  const FORCES = [
+    {id:'w', n:'Gaya berat (tarikan Bumi)', dir:'down', ok:() => true, len:82, lab:'w'},
+    {id:'hand', n:'Gaya dorong tangan', dir:'up', ok:p => p === 'tangan', len:128, lab:'F tangan'},
+    {id:'imp', n:'Gaya lemparan yang “tersimpan” di bola', dir:'up', ok:() => false, len:60, lab:'F lempar?'},
+    {id:'mov', n:'Gaya “gerak” yang searah gerak bola', dir:'v', ok:() => false, len:60, lab:'F gerak?'},
+    {id:'N', n:'Gaya normal dari lantai', dir:'up', ok:p => p === 'lantai', len:82, lab:'N'},
+    {id:'air', n:'Hambatan udara', dir:'-v', ok:null, len:16, lab:'f udara'},
+  ];
+  const FB = {
+    w:{yes:'Benar. Bumi menarik bola di mana pun bola berada, baik saat naik, di puncak, maupun turun. Gaya ini tidak pernah “habis”.', no:'Gaya berat selalu ada: Bumi selalu menarik bola, termasuk di puncak.'},
+    hand:{tangan:['Benar. Selama bola masih menempel di tangan, tangan mendorong bola ke atas dengan gaya lebih besar dari beratnya, sehingga bola dipercepat ke atas.', 'Saat masih di tangan, tangan memang menyentuh dan mendorong bola. Gaya ini perlu digambar.'],
+          other:'Benda apa yang memberi gaya ini? Tangan sudah tidak menyentuh bola, jadi tidak ada gaya dorong tangan.'},
+    imp:'Gaya bukan sesuatu yang disimpan atau dibawa bola. Gaya adalah interaksi dengan benda lain, dan tidak ada benda lain yang mendorong bola ke atas. Yang “dibawa” bola adalah kecepatannya.',
+    mov:'Gerak tidak membutuhkan gaya searah gerak (Hukum I). Yang searah gerak adalah kecepatan (panah biru), bukan gaya.',
+    N:{lantai:['Benar. Lantai menyentuh dan menahan bola ke atas. N sama besar dengan w, sehingga ΣF = 0 dan bola tetap diam.', 'Bola menyentuh lantai, jadi lantai mendorong bola ke atas (gaya normal).'], other:'Bola tidak menyentuh lantai, jadi tidak ada gaya normal.'},
+    air:'Hambatan udara memang ada (benda pemberinya: udara), tetapi untuk bola yang bergerak lambat gaya ini sangat kecil, jadi kita abaikan dalam model ini.',
+  };
+  let ph = 'naik', sel = new Set(), checked = false;
+  const tabs = $('#fbdPh');
+  PH.forEach(p => { const b = document.createElement('button'); b.textContent = p.n; b.dataset.p = p.id; if (p.id === ph) b.classList.add('on'); tabs.appendChild(b); });
+  segBind('#fbdPh', b => { ph = b.dataset.p; checked = false; sel.clear(); list(); render(); $('#fbdRes').innerHTML = ''; });
+  function list(){
+    const el = $('#fbdList'); el.innerHTML = '';
+    FORCES.forEach(f => {
+      const d = document.createElement('div'); d.className = 'fitem';
+      if (checked){
+        const has = sel.has(f.id);
+        if (f.id === 'air'){ if (has) d.classList.add('info'); }
+        else { const ok = f.ok(ph); if (has && ok) d.classList.add('good'); else if (has && !ok) d.classList.add('badx'); else if (!has && ok) d.classList.add('badx'); }
+      }
+      d.innerHTML = `<label><input type="checkbox" ${sel.has(f.id) ? 'checked' : ''}> ${f.n}</label><div class="fb"></div>`;
+      d.querySelector('input').onchange = e => { e.target.checked ? sel.add(f.id) : sel.delete(f.id); checked = false; list(); render(); };
+      if (checked){ const fb = d.querySelector('.fb'); const has = sel.has(f.id);
+        let m = '';
+        if (f.id === 'w') m = has ? FB.w.yes : FB.w.no;
+        else if (f.id === 'hand') m = ph === 'tangan' ? (has ? FB.hand.tangan[0] : FB.hand.tangan[1]) : (has ? FB.hand.other : '');
+        else if (f.id === 'N') m = ph === 'lantai' ? (has ? FB.N.lantai[0] : FB.N.lantai[1]) : (has ? FB.N.other : '');
+        else if (has) m = FB[f.id];
+        fb.textContent = m; if (!m) d.className = 'fitem';
+      }
+      el.appendChild(d);
+    });
+  }
+  function render(){
+    blit(c, bg);
+    const P = PH.find(p => p.id === ph);
+    const bx = 300, by = ph === 'lantai' ? GY - 24 : ph === 'tangan' ? 300 : ph === 'puncak' ? 110 : 220;
+    shadow(c, bx, GY + 6, 24, GY - by);
+    // jejak gerak
+    if (P.v !== 0 && ph !== 'tangan'){ for (let k = 1; k <= 4; k++) drawBall(c, bx, by + P.v*k*22, 24, 0, .14); }
+    if (ph === 'puncak'){ for (let k = 1; k <= 3; k++){ drawBall(c, bx - 0, by + k*24, 24, 0, .08); } }
+    if (ph === 'tangan'){ // tangan
+      c.save(); const sk = c.createLinearGradient(bx - 70, 0, bx + 70, 0); sk.addColorStop(0, '#c98b62'); sk.addColorStop(.5, '#e8b48d'); sk.addColorStop(1, '#b97b52');
+      c.fillStyle = sk; c.beginPath(); c.moveTo(bx - 46, by + 70); c.quadraticCurveTo(bx - 52, by + 30, bx - 30, by + 22); c.lineTo(bx + 30, by + 22); c.quadraticCurveTo(bx + 52, by + 30, bx + 46, by + 70); c.lineTo(bx + 34, by + 160); c.lineTo(bx - 34, by + 160); c.closePath(); c.fill();
+      [-30, -12, 8, 26].forEach((fx, i) => { c.fillStyle = sk; rr(c, bx + fx - 8, by + 2 - (i === 1 || i === 2 ? 6 : 0), 16, 34, 8); c.fill(); });
+      c.fillStyle = 'rgba(0,0,0,.1)'; c.fillRect(bx - 34, by + 130, 68, 4);
+      c.fillStyle = '#2f5d8a'; c.fillRect(bx - 38, by + 150, 76, 60); c.restore();
+    }
+    drawBall(c, bx, by, 24, .5);
+    if (ph === 'tangan'){ // gambar ulang jari depan
+    }
+    sel.forEach(id => {
+      const f = FORCES.find(x => x.id === id); let dy = 0, dx = 0;
+      if (f.dir === 'down') dy = f.len; else if (f.dir === 'up') dy = -f.len; else if (f.dir === 'v') dy = -P.v*f.len; else if (f.dir === '-v') dy = P.v*f.len;
+      if (dy === 0){ if (checked){} return; }
+      const ox = id === 'w' ? 6 : id === 'hand' ? -6 : id === 'N' ? -6 : id === 'imp' ? -34 : id === 'mov' ? 34 : 16;
+      const bad = checked && f.ok && !f.ok(ph);
+      arrow(c, bx + ox, by, bx + ox, by + dy, COL.F, 5, f.lab, {alpha: bad ? .35 : 1, side: ox < 0 ? 1 : -1});
+      if (bad){ text(c, '✕', bx + ox + (ox < 0 ? -24 : 24), by + dy/2, '#d23b3b', '800 22px ' + FONT); }
+    });
+    if ($('#fbdV').checked){ if (P.v !== 0) arrow(c, bx - 70, by, bx - 70, by - P.v*80, COL.V, 5, 'v', {side:1}); else pill(c, 'v = 0', bx - 80, by, COL.V); }
+    pill(c, P.n, W/2, 24);
+    if (checked){
+      const ok = FORCES.every(f => f.id === 'air' || f.ok(ph) === sel.has(f.id));
+      $('#fbdRes').innerHTML = ok ? `<div class="note green"><b>Diagram benar.</b> ${ph === 'lantai' ? 'ΣF = N − w = 0, bola tetap diam.' : ph === 'tangan' ? 'ΣF = F tangan − w ke atas, sehingga bola dipercepat ke atas.' : 'ΣF = w ke bawah, jadi a = g ke bawah, sama di posisi naik, puncak, maupun turun.'}</div>` : `<div class="note red">Masih ada yang perlu diperbaiki. Untuk setiap gaya, tanyakan: <b>benda apa yang memberi gaya ini, dan apakah benda itu menyentuh atau menarik bola?</b></div>`;
+    }
+  }
+  $('#fbdCheck').onclick = () => { checked = true; list(); render(); };
+  $('#fbdClear').onclick = () => { checked = false; sel.clear(); list(); render(); $('#fbdRes').innerHTML = ''; };
+  $('#fbdV').onchange = render;
+  onStage.push(n => { if (n === 3) render(); });
+  list(); render();
+  // tantangan
+  const ch = [['Tangan', 'Tangan sudah lepas dari bola, jadi tidak lagi menyentuh atau mendorongnya.'], ['Udara', 'Udara memberi hambatan yang berlawanan dengan arah gerak (ke bawah saat naik) dan sangat kecil. Udara tidak mendorong bola ke atas.'], ['“Momentum” atau tenaga lemparan di dalam bola', 'Momentum dan kecepatan adalah sifat gerak bola, bukan gaya. Bola tidak dapat mendorong dirinya sendiri.'], ['Tidak ada benda, jadi tidak ada gaya ke atas', 'Tepat. Tidak ada benda yang menyentuh bola, jadi tidak ada gaya ke atas. Bola tetap naik karena masih memiliki kecepatan ke atas, dan gaya berat memperlambatnya.']];
+  ch.forEach((x, i) => { const b = document.createElement('button'); b.textContent = x[0]; b.onclick = () => { $$('#chal button').forEach(y => y.classList.toggle('on', y === b)); $('#chalRes').innerHTML = `<div class="note ${i === 3 ? 'green' : 'red'}" style="margin-top:6px">${x[1]}</div>`; }; $('#chal').appendChild(b); });
+})();
+
+/* ============ TAHAP 3: analogi jembatan (bidang miring) ============ */
+(function(){
+  const W = 900, H = 460, c = mk($('#cvBridge'), W, H), BX = 90, BY = 410, PPM = 40, V0 = 9, R = 16;
+  const bg = off(W, H); (function(){ const x = bg.x; const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#e9eef4'); gr.addColorStop(1, '#d7dde5'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+    for (let k = 0; k < 12; k++){ x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(k*80, 0, 2, BY); }
+    const fl = x.createLinearGradient(0, BY, 0, H); fl.addColorStop(0, '#8d8f94'); fl.addColorStop(1, '#5c5f66'); x.fillStyle = fl; x.fillRect(0, BY, W, H - BY); })();
+  let th = 0, s = 0, v = V0, running = false, out = 0, holdT = 0, rot = 0;
+  function geo(){ const a = th*Math.PI/180, ux = Math.cos(a), uy = -Math.sin(a); const Lx = ux > 1e-6 ? (W - 30 - BX)/ux : 1e9, Ly = -uy > 1e-6 ? (BY - 30)/(-uy) : 1e9; return {a, ux, uy, Lpx:Math.min(Lx, Ly)}; }
+  function render(){
+    blit(c, bg);
+    const G = geo(), ex = BX + G.ux*G.Lpx, ey = BY + G.uy*G.Lpx;
+    // penopang bidang
+    c.save(); const sg = c.createLinearGradient(BX, BY, ex, ey); sg.addColorStop(0, '#c9ccd2'); sg.addColorStop(1, '#a9adb6');
+    c.fillStyle = sg; c.beginPath(); c.moveTo(BX, BY); c.lineTo(ex, ey); c.lineTo(ex, BY); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(0,0,0,.08)'; c.beginPath(); c.moveTo(ex - 14, ey + 14); c.lineTo(ex, ey); c.lineTo(ex, BY); c.lineTo(ex - 14, BY); c.closePath(); c.fill();
+    // permukaan licin
+    c.strokeStyle = '#eef7ff'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(BX, BY); c.lineTo(ex, ey); c.stroke();
+    c.strokeStyle = 'rgba(80,140,200,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(BX, BY + 3); c.lineTo(ex, ey + 3); c.stroke();
+    c.restore();
+    if (th > 0){ c.save(); c.strokeStyle = '#18202d'; c.lineWidth = 1.5; c.beginPath(); c.arc(BX, BY, 46, -G.a, 0); c.stroke(); c.restore(); text(c, th + '°', BX + 62*Math.cos(G.a/2), BY - 62*Math.sin(G.a/2), '#18202d', '700 14px ' + FONT); }
+    // bola
+    const nx = -Math.sin(G.a), ny = -Math.cos(G.a);
+    const sp = Math.min(s*PPM, G.Lpx + 400);
+    const px = BX + G.ux*sp + nx*R + 14*G.ux, py = BY + G.uy*sp + ny*R + 14*G.uy;
+    drawBall(c, px, py, R, rot);
+    const comp = g*Math.sin(G.a);
+    if (comp > .05) arrow(c, px, py, px - G.ux*comp*12, py - G.uy*comp*12, COL.F, 5, 'mg sin θ', {side: -1});
+    else pill(c, 'tidak ada gaya sejajar lantai', px, py - 54, 'rgba(224,59,59,.9)');
+    if (Math.abs(v) > .1) arrow(c, px + nx*30, py + ny*30, px + nx*30 + G.ux*v*9, py + ny*30 + G.uy*v*9, COL.V, 5, 'v', {side:1});
+    else pill(c, 'v = 0', px + nx*44, py + ny*44, COL.V);
+    if (out > 0) pill(c, 'Bola keluar layar dan terus melaju dengan kecepatan tetap', W/2, 40, 'rgba(18,150,90,.92)');
+    const rd = `θ = ${th}° · percepatan sejajar bidang = ${fmt(comp, 2)} m/s² ke bawah bidang · v = ${fmt(v, 2)} m/s`;
+    text(c, rd, W/2, H - 18, '#ffffff', '600 13px ' + MONO, 'center', false);
+  }
+  const TX = [
+    [0, 0, '<b>① Jangkar (intuisi yang sudah benar):</b> di lantai datar yang licin, bola yang sudah menggelinding terus melaju jauh. Tidak ada gaya sejajar lantai, jadi kecepatannya tetap. Kamu sudah tahu ini dari pengalaman.'],
+    [1, 25, '<b>② Jembatan:</b> miringkan lantai sedikit. Sekarang sebagian tarikan Bumi sejajar bidang dan arahnya <i>ke bawah bidang</i>. Bola melambat pelan, berhenti sesaat, lalu menggelinding turun. Tidak ada gaya “dorongan” yang habis; yang ada hanya tarikan Bumi.'],
+    [26, 55, '<b>③ Jembatan:</b> makin curam, komponen tarikan Bumi makin besar, jadi bola melambat lebih cepat. Di titik tertinggi v = 0, tetapi panah gaya tetap ada. Karena itu bola langsung berbalik turun.'],
+    [56, 89, '<b>④ Jembatan:</b> hampir tegak. Komponen gaya berat hampir sama dengan seluruh gaya berat, dan percepatannya hampir 9,8 m/s².'],
+    [90, 90, '<b>⑤ Sasaran: lemparan vertikal.</b> Bidang tegak berarti seluruh gaya berat bekerja ke bawah. Bola melambat 9,8 m/s setiap detik, berhenti sesaat di puncak (v = 0, gaya tetap ada), lalu jatuh. Ini kasus yang sama dengan bola di bidang miring, hanya lebih curam.'],
+  ];
+  function txt(){ const t = TX.find(x => th >= x[0] && th <= x[1]); $('#brTxt').innerHTML = t[2]; }
+  function setTh(a){ th = a; $('#brA').value = a; $('#brAo').textContent = a + '°'; $$('#brSteps button').forEach(b => b.classList.toggle('on', +b.dataset.a === a)); txt(); start(); }
+  function start(){ s = 0; v = V0; running = true; out = 0; holdT = 0; }
+  addSim(3, dt => {
+    if (running){
+      const G = geo(), a = g*Math.sin(G.a);
+      s += v*dt - .5*a*dt*dt; v -= a*dt; rot += v*dt/(R/PPM);
+      if (s < 0){ s = 0; v = 0; running = false; holdT = 1.2; }
+      if (s*PPM > G.Lpx + 120){ running = false; out = 2; }
+    } else {
+      if (out > 0){ out -= dt; if (out <= 0) start(); }
+      else if (holdT > 0){ holdT -= dt; if (holdT <= 0) start(); }
+    }
+    render();
+  });
+  $('#brA').oninput = e => setTh(+e.target.value);
+  $('#brSteps').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTh(+b.dataset.a); });
+  $('#brGo').onclick = start;
+  setTh(0);
+})();
+
+/* ============ TAHAP 3: proyektil ============ */
+(function(){
+  const W = 960, H = 500, GY = 452, c = mk($('#cvProj'), W, H), PX = 110, PY = 420;
+  const bg = sceneOutdoor(W, H, GY, 41, {trees:4});
+  const st = {ang:90, v0:14, t:0, fly:false, paused:false, sp:.4, trail:[], ppm:30, peakDone:false, ox:0, oy:0};
+  function muzzle(){ const a = st.ang*Math.PI/180; return {x:PX + Math.cos(a)*62, y:PY - Math.sin(a)*62}; }
+  function scale(){ const a = st.ang*Math.PI/180, vx = st.v0*Math.cos(a), vy = st.v0*Math.sin(a); const T = 2*vy/g, R = vx*T, Hm = vy*vy/(2*g); const m = muzzle(); st.ppm = Math.min(R > .01 ? (W - 60 - m.x)/R : 1e9, (m.y - 40)/Math.max(Hm, .5), 60); }
+  function cannon(){
+    const a = st.ang*Math.PI/180;
+    c.save(); c.translate(PX, PY); c.rotate(-a);
+    const bg_ = c.createLinearGradient(0, -14, 0, 14); bg_.addColorStop(0, '#5d6570'); bg_.addColorStop(.35, '#c6cdd6'); bg_.addColorStop(.6, '#7c858f'); bg_.addColorStop(1, '#2d3238');
+    c.fillStyle = bg_; c.beginPath(); c.moveTo(-26, -15); c.lineTo(66, -11); c.lineTo(66, 11); c.lineTo(-26, 15); c.closePath(); c.fill();
+    c.fillStyle = '#2d3238'; rr(c, 58, -14, 10, 28, 3); c.fill(); rr(c, 20, -14, 6, 28, 2); c.fill();
+    c.beginPath(); c.arc(-28, 0, 15, 0, 7); c.fill();
+    c.restore();
+    // roda kayu
+    c.save(); c.translate(PX, PY + 6); const wg = c.createRadialGradient(-4, -4, 2, 0, 0, 26); wg.addColorStop(0, '#a9763f'); wg.addColorStop(1, '#5d3b1a');
+    c.fillStyle = wg; c.beginPath(); c.arc(0, 0, 26, 0, 7); c.fill(); c.strokeStyle = '#3b2610'; c.lineWidth = 4; c.stroke();
+    c.lineWidth = 3; for (let k = 0; k < 8; k++){ c.rotate(Math.PI/4); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 22); c.stroke(); }
+    c.fillStyle = '#2d2d2d'; c.beginPath(); c.arc(0, 0, 5, 0, 7); c.fill(); c.restore();
+    c.fillStyle = '#5d3b1a'; c.fillRect(PX - 50, PY + 18, 80, 10);
+  }
+  function state(t){ const a = st.ang*Math.PI/180, vx = st.v0*Math.cos(a), vy0 = st.v0*Math.sin(a); return {x:vx*t, y:vy0*t - .5*g*t*t, vx, vy:vy0 - g*t}; }
+  function render(){
+    blit(c, bg);
+    // jejak
+    c.save(); st.trail.forEach((p, i) => { c.fillStyle = 'rgba(255,255,255,.95)'; c.beginPath(); c.arc(st.ox + p[0]*st.ppm, st.oy - p[1]*st.ppm, 3, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.25)'; c.stroke(); }); c.restore();
+    cannon();
+    if (st.fly || st.t > 0){
+      const s = state(st.t), bx = st.ox + s.x*st.ppm, by = st.oy - s.y*st.ppm, K = 6.2;
+      shadow(c, bx, GY + 8, 14, GY - by);
+      drawBall(c, bx, by, 14, st.t*4);
+      if ($('#pjF').checked) arrow(c, bx - 18, by, bx - 18, by + 74, COL.F, 5, 'F = mg', {side:1, lx:-12});
+      if ($('#pjA').checked) arrow(c, bx + 18, by, bx + 18, by + g*K, COL.A, 5, 'a = g', {side:-1, lx:10});
+      if ($('#pjV').checked){ const sp = Math.hypot(s.vx, s.vy); if (sp > .2) arrow(c, bx, by, bx + s.vx*K, by - s.vy*K, COL.V, 5, 'v', {side:1}); else pill(c, 'v = 0', bx, by - 34, COL.V); }
+      if ($('#pjC').checked){ if (Math.abs(s.vx) > .2) arrow(c, bx, by, bx + s.vx*K, by, '#7fa8f5', 3, 'vₓ', {dash:[5, 4], side:-1}); if (Math.abs(s.vy) > .2) arrow(c, bx, by, bx, by - s.vy*K, '#7fa8f5', 3, 'v_y', {dash:[5, 4], side:1}); }
+      $('#pjRead').innerHTML = `<div>t<b>${fmt(st.t, 2)} s</b></div><div>vₓ<b>${fmt(s.vx, 2)} m/s</b></div><div>v_y<b>${fmt(s.vy, 2)} m/s</b></div><div>|v|<b>${fmt(Math.hypot(s.vx, s.vy), 2)} m/s</b></div><div>a<b>9,80 m/s² ↓</b></div><div>ΣF<b>mg ↓ (tetap)</b></div><div>tinggi<b>${fmt(s.y, 2)} m</b></div>`;
+    } else $('#pjRead').innerHTML = '<div>Tekan <b style="display:inline">Tembakkan</b> untuk memulai</div>';
+    const scaleM = st.ppm >= 1 ? (st.ppm*1) : 1; c.save(); c.fillStyle = 'rgba(255,255,255,.88)'; rr(c, W - 150, 16, 134, 34, 8); c.fill(); c.strokeStyle = '#18202d'; c.lineWidth = 2; c.beginPath(); c.moveTo(W - 138, 38); c.lineTo(W - 138 + st.ppm*2, 38); c.stroke(); c.font = '600 11px ' + MONO; c.fillStyle = '#18202d'; c.fillText('2 m', W - 132 + st.ppm*2, 42); c.restore();
+  }
+  let trailAcc = 0;
+  addSim(3, dt => {
+    if (st.fly && !st.paused){
+      const prev = st.t; st.t += dt*st.sp;
+      const a = st.ang*Math.PI/180, tp = st.v0*Math.sin(a)/g, T = 2*tp;
+      if ($('#pjPk').checked && !st.peakDone && prev < tp && st.t >= tp){ st.t = tp; st.paused = true; st.peakDone = true; $('#pjPause').textContent = '▶ Lanjut';
+        $('#pjCall').classList.add('on'); $('#pjCall').innerHTML = st.ang === 90 ? '<b>Di puncak:</b> panah kecepatan hilang (v = 0), tetapi panah percepatan dan gaya tetap sama panjang dan tetap ke bawah. Kecepatan nol bukan berarti gaya atau percepatan nol.' : '<b>Di puncak:</b> v_y = 0, tetapi vₓ tetap (tidak ada gaya mendatar). Panah percepatan dan gaya tetap ke bawah, sama seperti di titik lain.'; }
+      trailAcc += dt*st.sp; if (trailAcc > .1){ trailAcc = 0; const s = state(st.t); st.trail.push([s.x, s.y]); }
+      if (st.t >= T){ st.t = T; st.fly = false; }
+    }
+    render();
+  });
+  function fire(){ scale(); const m = muzzle(); st.ox = m.x; st.oy = m.y; st.t = 0; st.fly = true; st.paused = false; st.peakDone = false; st.trail = []; $('#pjPause').textContent = '⏸ Jeda'; $('#pjCall').classList.remove('on'); }
+  $('#pjFire').onclick = fire;
+  $('#pjPause').onclick = () => { if (!st.fly) return; st.paused = !st.paused; $('#pjPause').textContent = st.paused ? '▶ Lanjut' : '⏸ Jeda'; if (!st.paused) $('#pjCall').classList.remove('on'); };
+  $('#pjClear').onclick = () => { st.trail = []; };
+  $('#pjAng').oninput = e => { st.ang = +e.target.value; $('#pjAngo').textContent = st.ang + '°'; if (!st.fly){ st.t = 0; } };
+  $('#pjV0').oninput = e => { st.v0 = +e.target.value; $('#pjV0o').textContent = fmt(st.v0, 1) + ' m/s'; if (!st.fly) st.t = 0; };
+  segBind('#pjSpd', b => st.sp = +b.dataset.sp);
+  scale(); render();
+})();
+
+/* ============ TAHAP 3: revisi gambar ============ */
+const preRO = Drawer($('#cvPreRO'), 'pre', {editable:false});
+const postDrawer = Drawer($('#cvPost'), 'post');
+segBind('#postMode', b => postDrawer.mode = b.dataset.m);
+$('#postClear').onclick = () => postDrawer.clear();
+$('#postKey').onchange = e => { postDrawer.showKey = e.target.checked; postDrawer.render(); };
+const cmpPre = Drawer($('#cvCmpPre'), 'pre', {editable:false});
+const cmpPost = Drawer($('#cvCmpPost'), 'post', {editable:false});
+cmpPost.showKey = true;
+onStage.push(n => { if (n === 3){ preRO.render(); postDrawer.render(); } if (n === 5){ cmpPre.render(); cmpPost.render(); updateCompare(); } });
+
+/* ============ TAHAP 4: Peer Instruction ============ */
+(function(){
+  const W = 640, H = 360, c = mk($('#cvPI'), W, H);
+  const stars = off(W, H); (function(){ const x = stars.x, r = rng(99); x.fillStyle = '#05070f'; x.fillRect(0, 0, W, H);
+    const neb = x.createRadialGradient(480, 90, 10, 480, 90, 220); neb.addColorStop(0, 'rgba(120,80,200,.35)'); neb.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = neb; x.fillRect(0, 0, W, H);
+    const neb2 = x.createRadialGradient(120, 300, 10, 120, 300, 200); neb2.addColorStop(0, 'rgba(40,120,200,.25)'); neb2.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = neb2; x.fillRect(0, 0, W, H);
+    for (let k = 0; k < 520; k++){ const s = r(); x.fillStyle = `rgba(255,255,255,${.3 + r()*.7})`; x.beginPath(); x.arc(r()*W, r()*H, s < .92 ? .6 : 1.4, 0, 7); x.fill(); } })();
+  const skyP = off(W, H); sky(skyP.x, W, H, '#3c86d8', '#8ec4f2', '#d9ecfb');
+  const shop = off(W, H); (function(){ const x = shop.x, r = rng(15); const gr = x.createLinearGradient(0, 0, 0, 230); gr.addColorStop(0, '#f6f3ec'); gr.addColorStop(1, '#e8e2d6'); x.fillStyle = gr; x.fillRect(0, 0, W, 240);
+    for (let sh = 0; sh < 4; sh++){ const y = 40 + sh*48; x.fillStyle = '#c9c2b4'; x.fillRect(0, y + 38, W, 6); for (let px = 6; px < W; ){ const w = 14 + r()*20, h = 18 + r()*18; x.fillStyle = `hsl(${Math.floor(r()*360)},${50 + r()*30}%,${45 + r()*20}%)`; x.fillRect(px, y + 38 - h, w, h); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(px + 2, y + 38 - h + 3, w - 4, 3); px += w + 2; } }
+    const fl = x.createLinearGradient(0, 240, 0, H); fl.addColorStop(0, '#d8d2c6'); fl.addColorStop(1, '#b9b2a4'); x.fillStyle = fl; x.fillRect(0, 240, W, H - 240);
+    x.strokeStyle = 'rgba(90,80,60,.25)'; for (let y = 240; y < H; y += 28){ x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
+    x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 244, W, 6); })();
+  function astronaut(x, y){
+    c.save(); c.translate(x, y);
+    const suit = (a, b, w, h, r_) => { const gr = c.createLinearGradient(a, b, a + w, b + h); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#b9c0cc'); c.fillStyle = gr; rr(c, a, b, w, h, r_); c.fill(); };
+    c.fillStyle = '#8b939f'; rr(c, -36, -30, 22, 56, 6); c.fill();
+    suit(-24, -34, 48, 62, 16);
+    c.save(); c.translate(-14, 22); c.rotate(.15); suit(-10, 0, 20, 52, 9); c.restore();
+    c.save(); c.translate(12, 22); c.rotate(-.25); suit(-10, 0, 20, 52, 9); c.restore();
+    c.save(); c.translate(-18, -22); c.rotate(.6); suit(-8, 0, 16, 44, 8); c.restore();
+    c.save(); c.translate(20, -22); c.rotate(-1.35); suit(-8, 0, 16, 50, 8); c.restore();
+    c.fillStyle = '#d23b3b'; c.fillRect(-14, -10, 10, 6); c.fillStyle = '#2367e8'; c.fillRect(-2, -10, 10, 6);
+    const hg = c.createRadialGradient(-6, -66, 4, 0, -58, 30); hg.addColorStop(0, '#ffffff'); hg.addColorStop(1, '#aab2be'); c.fillStyle = hg; c.beginPath(); c.arc(0, -58, 28, 0, 7); c.fill();
+    const vg = c.createLinearGradient(-18, -72, 20, -46); vg.addColorStop(0, '#ffd26a'); vg.addColorStop(.5, '#b4741a'); vg.addColorStop(1, '#3a2408'); c.fillStyle = vg; c.beginPath(); c.ellipse(4, -58, 19, 15, 0, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.6)'; c.beginPath(); c.ellipse(-2, -64, 7, 3.5, -.5, 0, 7); c.fill();
+    c.restore();
+  }
+  function wrench(x, y, rot){
+    c.save(); c.translate(x, y); c.rotate(rot);
+    const mg = c.createLinearGradient(0, -6, 0, 6); mg.addColorStop(0, '#f2f4f7'); mg.addColorStop(.5, '#9aa3ae'); mg.addColorStop(1, '#5d6570');
+    c.fillStyle = mg; rr(c, -26, -4, 52, 8, 3); c.fill();
+    c.beginPath(); c.arc(-28, 0, 9, 0, 7); c.fill(); c.beginPath(); c.arc(28, 0, 9, 0, 7); c.fill();
+    c.fillStyle = '#05070f'; c.fillRect(30, -3.5, 10, 7); c.beginPath(); c.arc(-28, 0, 4, 0, 7); c.fill();
+    c.restore();
+  }
+  function voyager(x, y){
+    c.save(); c.translate(x, y);
+    c.strokeStyle = '#c9ced6'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, 0); c.lineTo(-150, 52); c.moveTo(0, 6); c.lineTo(110, 70); c.stroke();
+    c.fillStyle = '#6b6f78'; [[60, 40], [80, 52], [96, 61]].forEach(([a, b]) => { rr(c, a - 6, b - 4, 12, 9, 2); c.fill(); });
+    const fb = c.createLinearGradient(-18, -10, 18, 20); fb.addColorStop(0, '#f6d48a'); fb.addColorStop(.5, '#b98a2c'); fb.addColorStop(1, '#6e4f12'); c.fillStyle = fb; c.beginPath(); for (let k = 0; k < 6; k++){ const a = k*Math.PI/3; c.lineTo(Math.cos(a)*20, 8 + Math.sin(a)*12); } c.closePath(); c.fill();
+    const dg = c.createLinearGradient(-50, -60, 50, -10); dg.addColorStop(0, '#ffffff'); dg.addColorStop(.6, '#d9dde3'); dg.addColorStop(1, '#8e959f');
+    c.fillStyle = dg; c.beginPath(); c.ellipse(0, -26, 54, 20, 0, 0, 7); c.fill(); c.strokeStyle = '#7d848e'; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = 'rgba(0,0,0,.12)'; c.beginPath(); c.ellipse(0, -24, 40, 13, 0, 0, 7); c.fill();
+    c.strokeStyle = '#c9ced6'; c.beginPath(); c.moveTo(0, -26); c.lineTo(0, -54); c.stroke(); c.fillStyle = '#e8ebef'; c.beginPath(); c.arc(0, -56, 3, 0, 7); c.fill();
+    c.restore();
+  }
+  function trolley(x, y){
+    c.save(); c.translate(x, y);
+    c.strokeStyle = '#9aa3ae'; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-70, -96); c.lineTo(-56, -96); c.lineTo(-44, -30); c.lineTo(60, -30); c.lineTo(72, -90); c.lineTo(-52, -90); c.stroke();
+    c.lineWidth = 1.2; c.strokeStyle = 'rgba(140,150,160,.9)';
+    for (let k = 0; k <= 10; k++){ const xx = -50 + k*11.8; c.beginPath(); c.moveTo(xx, -90); c.lineTo(xx + (k/10 - .5)*8, -30); c.stroke(); }
+    for (let k = 1; k < 5; k++){ const yy = -90 + k*12; c.beginPath(); c.moveTo(-52 + k*1.6, yy); c.lineTo(72 - k*2.4, yy); c.stroke(); }
+    c.fillStyle = '#d23b3b'; rr(c, -82, -102, 22, 10, 4); c.fill();
+    c.strokeStyle = '#7b848f'; c.lineWidth = 3; c.beginPath(); c.moveTo(-40, -30); c.lineTo(-30, -6); c.moveTo(56, -30); c.lineTo(46, -6); c.moveTo(-30, -6); c.lineTo(46, -6); c.stroke();
+    [[-30, 0], [46, 0]].forEach(([a, b]) => { c.fillStyle = '#222'; c.beginPath(); c.arc(a, b, 7, 0, 7); c.fill(); c.fillStyle = '#aaa'; c.beginPath(); c.arc(a, b, 2.5, 0, 7); c.fill(); });
+    c.restore();
+  }
+  function chute(x, y){
+    c.save(); c.translate(x, y);
+    c.strokeStyle = 'rgba(40,40,40,.6)'; c.lineWidth = 1; for (let k = 0; k <= 6; k++){ c.beginPath(); c.moveTo(-80 + k*26.6, -96); c.lineTo(0, -10); c.stroke(); }
+    for (let k = 0; k < 6; k++){ c.fillStyle = k % 2 ? '#ffffff' : '#ff6a2b'; c.beginPath(); c.moveTo(-80 + k*26.6, -96); c.quadraticCurveTo(-80 + (k + .5)*26.6, -150 + Math.abs(k - 2.5)*10, -80 + (k + 1)*26.6, -96); c.quadraticCurveTo(-80 + (k + .5)*26.6, -104, -80 + k*26.6, -96); c.fill(); }
+    const cg = c.createLinearGradient(0, -150, 0, -96); cg.addColorStop(0, 'rgba(255,255,255,.35)'); cg.addColorStop(1, 'rgba(0,0,0,.15)'); c.fillStyle = cg; c.beginPath(); c.moveTo(-80, -96); c.quadraticCurveTo(0, -170, 80, -96); c.closePath(); c.fill();
+    c.fillStyle = '#2e3a4e'; rr(c, -8, -12, 16, 28, 6); c.fill(); c.fillStyle = '#f1c7a1'; c.beginPath(); c.arc(0, -16, 6.5, 0, 7); c.fill(); c.fillStyle = '#d23b3b'; c.beginPath(); c.arc(0, -19, 6.5, Math.PI, 0); c.fill();
+    c.strokeStyle = '#2e3a4e'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(-4, 14); c.lineTo(-7, 34); c.moveTo(4, 14); c.lineTo(7, 34); c.moveTo(-7, -8); c.lineTo(-14, -26); c.moveTo(7, -8); c.lineTo(14, -26); c.stroke();
+    c.restore();
+  }
+  function motor(x, y, rot){
+    c.save(); c.translate(x, y);
+    c.fillStyle = 'rgba(0,0,0,.3)'; c.filter = 'blur(3px)'; c.beginPath(); c.ellipse(0, 4, 74, 6, 0, 0, 7); c.fill(); c.filter = 'none';
+    [-48, 50].forEach(wx => { c.save(); c.translate(wx, -20); c.fillStyle = '#121212'; c.beginPath(); c.arc(0, 0, 22, 0, 7); c.fill(); c.fillStyle = '#9aa3ae'; c.beginPath(); c.arc(0, 0, 14, 0, 7); c.fill(); c.fillStyle = '#121212'; c.beginPath(); c.arc(0, 0, 12, 0, 7); c.fill(); c.rotate(rot); c.strokeStyle = '#c9ced6'; c.lineWidth = 2; for (let k = 0; k < 5; k++){ c.rotate(Math.PI*2/5); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, 12); c.stroke(); } c.restore(); });
+    c.strokeStyle = '#3b3f46'; c.lineWidth = 5; c.beginPath(); c.moveTo(-48, -20); c.lineTo(-14, -34); c.lineTo(28, -36); c.moveTo(50, -20); c.lineTo(36, -66); c.stroke();
+    const bg_ = c.createLinearGradient(0, -70, 0, -30); bg_.addColorStop(0, '#ff5a5a'); bg_.addColorStop(1, '#a01818');
+    c.fillStyle = bg_; c.beginPath(); c.moveTo(-40, -44); c.quadraticCurveTo(-30, -58, -6, -58); c.lineTo(30, -60); c.quadraticCurveTo(44, -56, 40, -44); c.lineTo(20, -36); c.lineTo(-28, -34); c.closePath(); c.fill();
+    c.fillStyle = '#1b1b1b'; rr(c, -46, -66, 46, 9, 4); c.fill();
+    c.fillStyle = '#6d727a'; rr(c, -16, -36, 30, 16, 4); c.fill();
+    c.strokeStyle = '#1b1b1b'; c.lineWidth = 4; c.beginPath(); c.moveTo(36, -66); c.lineTo(26, -80); c.lineTo(14, -82); c.stroke();
+    c.fillStyle = '#fff6b0'; c.beginPath(); c.arc(42, -66, 5, 0, 7); c.fill();
+    c.restore();
+  }
+  const ITEMS = [
+    {t:'Bola naik di bidang miring licin', q:'Bola didorong lalu dilepas sehingga menggelinding naik di bidang miring yang licin. Saat bola masih naik, gaya sejajar bidang yang bekerja pada bola adalah …',
+     o:['Gaya dorong ke atas bidang yang makin lama makin kecil', 'Hanya komponen gaya berat yang arahnya ke bawah bidang', 'Tidak ada gaya, karena bidang licin', 'Gaya dorong dan gaya berat yang seimbang'], a:1,
+     e:'Setelah dilepas, tidak ada benda yang mendorong bola ke atas bidang. Satu-satunya gaya sejajar bidang adalah komponen gaya berat (mg sin θ) ke bawah bidang. Gaya ini memperlambat bola, menghentikannya sesaat, lalu menggelindingkannya kembali. Kasusnya sama dengan bola di jembatan analogi Tahap 3.',
+     draw(t, show){ c.drawImage(skyP.c, 0, 0, W, H); c.fillStyle = '#7fae57'; c.fillRect(0, 330, W, 30);
+       const A = Math.atan2(190, 560), ux = Math.cos(A), uy = -Math.sin(A), bx = 50, by = 330;
+       const sg = c.createLinearGradient(0, 140, 0, 330); sg.addColorStop(0, '#d8dce2'); sg.addColorStop(1, '#9aa1ab'); c.fillStyle = sg; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 560, by - 190); c.lineTo(bx + 560, by); c.closePath(); c.fill();
+       c.strokeStyle = '#f4fbff'; c.lineWidth = 5; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 560, by - 190); c.stroke();
+       const a = g*Math.sin(A), v0 = 4.2, Tu = v0/a, tau = t % (2*Tu + .8), tt = Math.min(tau, 2*Tu), s = v0*tt - .5*a*tt*tt, v = v0 - a*tt, ppm = 170;
+       const nx = -Math.sin(A), ny = -Math.cos(A), px = bx + 30*ux + ux*s*ppm + nx*18, py = by + 30*uy + uy*s*ppm + ny*18;
+       for (let k = 1; k <= 3; k++){ const sk = Math.max(0, s - v*k*.12); drawBall(c, bx + 30*ux + ux*sk*ppm + nx*18, by + 30*uy + uy*sk*ppm + ny*18, 18, 0, .12); }
+       drawBall(c, px, py, 18, s*6);
+       if (show){ arrow(c, px, py, px - ux*a*14, py - uy*a*14, COL.F, 5, 'mg sin θ', {side:1}); arrow(c, px, py, px, py + 70, '#a12a2a', 3, 'w', {dash:[5, 4], side:-1}); arrow(c, px, py, px + nx*66, py + ny*66, '#a12a2a', 3, 'N', {dash:[5, 4]}); if (Math.abs(v) > .1) arrow(c, px + nx*40, py + ny*40, px + nx*40 + ux*v*18, py + ny*40 + uy*v*18, COL.V, 4, 'v', {side:1}); }
+     }},
+    {t:'Astronaut melempar kunci pas', q:'Seorang astronaut yang sangat jauh dari planet atau bintang mana pun melempar kunci pas. Setelah lepas dari tangannya, kunci pas akan …',
+     o:['Melambat lalu berhenti setelah tenaga lemparannya habis', 'Bergerak lurus dengan kecepatan tetap', 'Bergerak makin cepat', 'Kembali ke arah astronaut'], a:1,
+     e:'Jauh dari planet, tidak ada benda yang memberi gaya pada kunci pas, jadi ΣF = 0. Menurut Hukum I Newton, kunci pas terus bergerak lurus dengan kecepatan tetap. Jarak antarbayangan pada animasi selalu sama, yang menandakan kecepatannya tetap. Benda tidak perlu gaya untuk tetap bergerak.',
+     draw(t, show){ blit(c, stars); astronaut(140, 220); const tau = t % 6.5, x = 200 + tau*80, y = 160 - tau*6;
+       for (let k = 1; k <= 4; k++){ const tk = tau - k*.6; if (tk < 0) break; c.save(); c.globalAlpha = .18; wrench(200 + tk*80, 160 - tk*6, tk*2.4); c.restore(); }
+       wrench(x, y, tau*2.4);
+       if (show){ arrow(c, x, y - 34, x + 80, y - 40, COL.V, 4, 'v (tetap)', {side:-1}); pill(c, 'ΣF = 0 → v tetap', x, y + 44, 'rgba(224,59,59,.9)'); } }},
+    {t:'Voyager tetap melaju', q:'Wahana Voyager 1 terus melaju menjauhi Matahari dengan kelajuan sekitar 17 km/s tanpa mesin pendorong yang menyala. Mengapa wahana itu tetap melaju?',
+     o:['Masih ada sisa gaya dorong roket saat peluncuran', 'Benda tidak memerlukan gaya untuk tetap bergerak; gaya yang bekerja sangat kecil sehingga kecepatannya hampir tetap', 'Ruang angkasa yang hampa mendorong wahana itu', 'Ada “gaya inersia” yang mendorongnya ke depan'], a:1,
+     e:'Tidak ada gaya dorong yang tersisa. Di ruang antarbintang, hampir tidak ada gesekan, dan tarikan gravitasi Matahari sudah sangat kecil. Karena resultan gayanya hampir nol, kecepatan wahana hampir tetap (Hukum I). Inersia adalah kecenderungan benda mempertahankan geraknya, bukan gaya.',
+     draw(t, show){ const sh = (t*30) % W; c.drawImage(stars.c, -sh, 0, W, H); c.drawImage(stars.c, W - sh, 0, W, H);
+       const sg = c.createRadialGradient(20, 180, 0, 20, 180, 60); sg.addColorStop(0, 'rgba(255,240,200,1)'); sg.addColorStop(.2, 'rgba(255,200,120,.6)'); sg.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = sg; c.fillRect(0, 100, 100, 160); text(c, 'Matahari (sangat jauh)', 70, 258, '#ffd58a', '600 11px ' + FONT, 'left', false);
+       voyager(360, 190);
+       if (show){ arrow(c, 360, 200, 345, 200, COL.F, 3, 'gravitasi Matahari, sangat kecil', {side:1, ly:8}); arrow(c, 430, 140, 560, 140, COL.V, 5, 'v ≈ tetap', {side:-1}); } }},
+    {t:'Troli belanja dengan kecepatan tetap', q:'Kamu mendorong troli belanja sehingga troli bergerak dengan kecepatan tetap. Bagaimana gaya dorongmu dibandingkan gaya gesek (hambatan) pada troli?',
+     o:['Gaya dorong lebih besar, karena troli bergerak maju', 'Gaya dorong sama besar dengan gaya gesek, sehingga ΣF = 0', 'Gaya dorong lebih kecil dari gaya gesek', 'Tidak ada gaya gesek saat troli bergerak'], a:1,
+     e:'Kecepatan tetap berarti percepatan nol, sehingga menurut Hukum II resultan gayanya juga nol. Gaya dorong tepat mengimbangi gaya gesek. Gaya dorong yang lebih besar hanya diperlukan untuk mempercepat troli dari diam.',
+     draw(t, show){ blit(c, shop); const x = ((t*70) % (W + 260)) - 120; trolley(x, 300);
+       if (show){ arrow(c, x - 70, 220, x + 10, 220, '#f08c00', 5, 'F dorong', {side:-1}); arrow(c, x + 40, 292, x - 40, 292, COL.F, 5, 'f gesek', {side:1}); arrow(c, x + 120, 230, x + 190, 230, COL.V, 4, 'v tetap', {side:-1}); pill(c, 'ΣF = 0', x + 10, 160, 'rgba(124,77,204,.92)'); } }},
+    {t:'Penerjun payung pada kecepatan terminal', q:'Seorang penerjun payung turun dengan kecepatan terminal (kecepatan tetap). Pernyataan yang benar adalah …',
+     o:['Gaya berat lebih besar dari hambatan udara, karena ia bergerak turun', 'Hambatan udara sama besar dengan gaya berat', 'Hambatan udara lebih besar dari gaya berat', 'Tidak ada gaya yang bekerja'], a:1,
+     e:'Bergerak ke bawah tidak berarti gaya ke bawah harus lebih besar. Karena kecepatannya tetap, ΣF = 0: hambatan udara ke atas sama besar dengan gaya berat ke bawah. Gaya berat tetap bekerja, tetapi diimbangi.',
+     draw(t, show){ c.drawImage(skyP.c, 0, 0, W, H); const r = rng(5); for (let k = 0; k < 6; k++){ const cx = r()*W, cy = ((r()*H*1.4 - t*90) % (H + 160) + H + 160) % (H + 160) - 80; cloud(c, cx, cy, 50 + r()*30, rng(k + 1), .85); }
+       chute(320, 210 + Math.sin(t*1.5)*3);
+       if (show){ arrow(c, 300, 110, 300, 30, COL.F, 5, 'F udara', {side:1}); arrow(c, 340, 230, 340, 310, COL.F, 5, 'w = mg', {side:-1}); arrow(c, 420, 200, 420, 260, COL.V, 4, 'v tetap', {side:-1}); pill(c, 'ΣF = 0', 200, 200, 'rgba(124,77,204,.92)'); } }},
+    {t:'Kasus Dimas: motor mogok', q:'Dimas berpendapat: “Motor yang mogok di jalan datar lama-lama berhenti karena gaya dari mesinnya sudah habis.” Penjelasan yang paling tepat adalah …',
+     o:['Dimas benar; gaya mesin tersimpan di motor dan berkurang sampai habis', 'Motor melambat karena gaya gesek dan hambatan udara berlawanan arah gerak; tanpa gaya-gaya itu motor akan terus melaju', 'Motor berhenti karena tidak ada gaya sama sekali yang bekerja', 'Gaya berat motor menariknya ke belakang'], a:1,
+     e:'Saat mesin mati, tidak ada lagi gaya dorong, tetapi gaya gesek (pada roda dan poros) serta hambatan udara tetap bekerja berlawanan arah gerak. Resultan gaya ke belakang menyebabkan perlambatan (Hukum II). Gaya tidak tersimpan lalu habis. Seperti mobil mainan di kaca, makin kecil gesekan, makin jauh motor meluncur; tanpa gesekan, motor tidak akan berhenti (Hukum I).',
+     draw(t, show){ const tau = t % 9, v = Math.max(0, 7 - 1.1*tau), s = tau < 7/1.1 ? 7*tau - .55*tau*tau : 7*7/(2*1.1);
+       c.drawImage(skyP.c, 0, 0, W, 220); c.fillStyle = '#86b36a'; c.fillRect(0, 200, W, 40); for (let k = 0; k < 8; k++){ const tx = ((k*120 - s*20) % (W + 120) + W + 120) % (W + 120) - 60; tree(c, tx, 214, 60, rng(k + 3)); }
+       const rg = c.createLinearGradient(0, 230, 0, H); rg.addColorStop(0, '#4a4d54'); rg.addColorStop(1, '#2b2d32'); c.fillStyle = rg; c.fillRect(0, 230, W, H - 230);
+       c.fillStyle = '#e8e8e8'; for (let k = -1; k < 10; k++){ const mx = ((k*90 - s*40) % 90 + 90) % 90 + k*0; c.fillRect(((k*90 - s*40) % (W + 90) + W + 90) % (W + 90) - 60, 318, 46, 6); }
+       motor(300, 300, s*2.5);
+       pill(c, 'mesin mati · v = ' + fmt(v, 1) + ' m/s', 300, 180, 'rgba(24,32,45,.85)');
+       if (show){ if (v > 0){ arrow(c, 260, 290, 190, 290, COL.F, 5, 'f gesek', {side:1}); arrow(c, 300, 230, 236, 230, COL.F, 4, 'F udara', {side:-1}); arrow(c, 380, 250, 380 + v*12, 250, COL.V, 4, 'v', {side:-1}); } else pill(c, 'berhenti: v = 0, gesek kinetis hilang', 300, 140, 'rgba(18,150,90,.9)'); } }},
+  ];
+  S.pi = S.pi || ITEMS.map(() => ({r1:null, r2:null, step:1, t1:[0, 0, 0, 0], t2:[0, 0, 0, 0]}));
+  let idx = 0, time = 0, timer = 0, timerOn = false;
+  const tabs = $('#piTabs');
+  ITEMS.forEach((it, i) => { const b = document.createElement('button'); b.textContent = (i + 1) + '. ' + it.t; b.dataset.i = i; tabs.appendChild(b); });
+  tabs.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; idx = +b.dataset.i; timerOn = false; ui(); });
+  function ui(){
+    const it = ITEMS[idx], st = S.pi[idx];
+    $$('#piTabs button').forEach((b, i) => b.classList.toggle('on', i === idx));
+    $('#piTitle').textContent = it.t; $('#piQ').textContent = it.q;
+    [1, 2, 3, 4].forEach(k => $('#pd' + k).classList.toggle('on', st.step >= k));
+    const cards = $('#piCards'); cards.innerHTML = '';
+    it.o.forEach((o, k) => { const d = document.createElement('div'); d.className = 'pcard ' + 'ABCD'[k];
+      const mine = st.step <= 1 ? st.r1 : st.r2 != null ? st.r2 : st.r1;
+      if (mine === k) d.classList.add('sel');
+      if (st.step >= 4){ if (k === it.a) d.classList.add('ans'); else d.classList.add('dim'); }
+      d.innerHTML = `<span class="L">${'ABCD'[k]}</span><span>${o}</span>`;
+      d.onclick = () => { if (st.step === 1) st.r1 = k; else if (st.step === 3) st.r2 = k; else return; save(); ui(); };
+      cards.appendChild(d); });
+    const ctl = $('#piCtrl'); ctl.innerHTML = '';
+    const btn = (t, f, pri) => { const b = document.createElement('button'); b.textContent = t; if (pri) b.className = 'pri'; b.onclick = f; ctl.appendChild(b); return b; };
+    if (st.step === 1){ const b = btn('Kunci jawaban putaran 1 →', () => { st.step = 2; timer = 120; timerOn = true; save(); ui(); }, true); }
+    if (st.step === 2){ const sp = document.createElement('span'); sp.className = 'timer'; sp.id = 'piTimer'; sp.textContent = tm(timer); ctl.appendChild(sp);
+      const t = document.createElement('span'); t.style.cssText = 'font-size:14px;color:var(--muted)'; t.textContent = 'Yakinkan teman sebangkumu! Jelaskan dengan diagram gaya.'; ctl.appendChild(t);
+      btn(timerOn ? '⏸' : '▶', () => { timerOn = !timerOn; ui(); }); btn('Selesai diskusi →', () => { st.step = 3; timerOn = false; save(); ui(); }, true); }
+    if (st.step === 3) btn('Kunci jawaban putaran 2 →', () => { st.step = 4; save(); ui(); }, true);
+    if (st.step === 4){ btn('Ulangi soal ini', () => { S.pi[idx] = {r1:null, r2:null, step:1, t1:[0, 0, 0, 0], t2:[0, 0, 0, 0]}; save(); ui(); }); if (idx < ITEMS.length - 1) btn('Soal berikutnya →', () => { idx++; ui(); }, true); }
+    const exp = $('#piExp'); exp.classList.toggle('on', st.step >= 4);
+    if (st.step >= 4){ const r1 = st.r1, r2 = st.r2; exp.innerHTML = `<b>Jawaban: ${'ABCD'[it.a]}.</b> ${it.e}<br><span style="opacity:.8;font-size:13.5px">Jawabanmu: putaran 1 = ${r1 == null ? '—' : 'ABCD'[r1]}${r1 === it.a ? ' ✓' : ''}, putaran 2 = ${r2 == null ? '—' : 'ABCD'[r2]}${r2 === it.a ? ' ✓' : ''}. Diagram gaya ditampilkan pada gambar.</span>`; }
+    $('#piDimas').style.display = idx === 5 && st.step >= 4 ? 'block' : 'none';
+    tally();
+  }
+  function tm(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s % 60).padStart(2, '0'); }
+  function tally(){
+    const st = S.pi[idx], it = ITEMS[idx], el = $('#piTally');
+    el.innerHTML = '<span></span>' + 'ABCD'.split('').map(l => `<b style="text-align:center">${l}</b>`).join('');
+    ['t1', 't2'].forEach((key, r) => { el.insertAdjacentHTML('beforeend', `<span>Putaran ${r + 1}</span>`); st[key].forEach((v, k) => { const inp = document.createElement('input'); inp.type = 'number'; inp.min = 0; inp.value = v; inp.oninput = () => { st[key][k] = Math.max(0, +inp.value || 0); save(); rec(); }; el.appendChild(inp); }); });
+    rec();
+  }
+  function rec(){
+    const st = S.pi[idx], it = ITEMS[idx], el = $('#piRec');
+    const bar = arr => { const n = arr.reduce((a, b) => a + b, 0); if (!n) return '<div class="bar"><span style="flex:1;color:#888">belum ada data</span></div>'; const cols = ['#d34646', '#2c6be0', '#1f9a5e', '#df9e1e']; return `<div class="bar">${arr.map((v, k) => v ? `<span style="flex:${v};background:${cols[k]}">${'ABCD'[k]} ${Math.round(v/n*100)}%</span>` : '').join('')}</div>`; };
+    const n1 = st.t1.reduce((a, b) => a + b, 0), p1 = n1 ? st.t1[it.a]/n1*100 : null;
+    let r = '';
+    if (p1 != null){ r = p1 < 30 ? `<div class="note red" style="margin-top:8px">Benar ${Math.round(p1)}% (&lt; 30%): jelaskan ulang konsepnya, lalu ajukan soal serupa.</div>` : p1 <= 70 ? `<div class="note" style="margin-top:8px">Benar ${Math.round(p1)}% (30–70%): waktu yang ideal untuk diskusi berpasangan. Minta siswa meyakinkan temannya.</div>` : `<div class="note green" style="margin-top:8px">Benar ${Math.round(p1)}% (&gt; 70%): bahas singkat lalu lanjut ke soal berikutnya.</div>`; }
+    el.innerHTML = `<div class="bars"><div style="font-size:12.5px;color:var(--muted)">Putaran 1</div>${bar(st.t1)}<div style="font-size:12.5px;color:var(--muted)">Putaran 2</div>${bar(st.t2)}</div>${r}`;
+  }
+  addSim(4, dt => {
+    if (!$('#piPause').checked) time += dt;
+    if (timerOn){ timer -= dt; if (timer <= 0){ timer = 0; timerOn = false; } const el = $('#piTimer'); if (el) el.textContent = tm(timer); }
+    ITEMS[idx].draw(time, S.pi[idx].step >= 4);
+  });
+  ui();
+})();
+
+/* ============ TAHAP 5 ============ */
+['j1', 'j2', 'j3', 'pred1', 'expl1', 'expl2', 'dimasTxt'].forEach(id => { const el = $('#' + id); if (!el) return; if (id !== 'pred1'){ S.txt = S.txt || {}; el.value = S.txt[id] || ''; el.addEventListener('input', () => { S.txt[id] = el.value; save(); }); } });
+Quiz($('#quizPost'), POST_ITEMS, 'qPost', {reveal:true, onDone: () => updateCompare()});
+function updateCompare(){
+  const el = $('#cmp'); const pre = S.qPre, post = S.qPost, del = S.qDelay;
+  const has = q => q && q.done;
+  let h = '<table class="t"><tr><th>Konsep</th><th>Sebelum (Tahap 1)</th><th>Sesudah (Tahap 5)</th>' + (has(del) ? '<th>Tes tunda</th>' : '') + '</tr>';
+  PRE_ITEMS.forEach((it, i) => {
+    const c1 = has(pre) ? catOf(pre.ans[i], PRE_ITEMS[i]) : null, c2 = has(post) ? catOf(post.ans[i], POST_ITEMS[i]) : null, c3 = has(del) ? catOf(del.ans[i], POST_ITEMS[i]) : null;
+    const chip = (cat, q, items) => cat ? `<span class="chip c-${cat}">${CAT_L[cat]}</span> <span class="mono" style="font-size:12px;color:var(--muted)">(${'ABCD'[q.ans[i].c]}, CRI ${q.ans[i].cri})</span>` : '<span style="color:var(--muted)">—</span>';
+    h += `<tr><td>${it.topic}</td><td>${chip(c1, pre)}${has(pre) ? ` <span style="font-size:12px;color:var(--muted)">kunci ${'ABCD'[PRE_ITEMS[i].a]}</span>` : ''}</td><td>${chip(c2, post)}</td>${has(del) ? `<td>${chip(c3, del)}</td>` : ''}</tr>`;
+  });
+  h += '</table>';
+  const stack = (q, items, label) => { if (!has(q)) return ''; const cnt = {paham:0, menebak:0, tidaktahu:0, miskonsepsi:0}; q.ans.forEach((a, i) => cnt[catOf(a, items[i])]++); return `<div style="display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;font-size:13px"><span>${label}</span><div class="bar">${Object.keys(cnt).map(k => cnt[k] ? `<span style="flex:${cnt[k]};background:${CAT_C[k]}">${CAT_L[k]} ${cnt[k]}</span>` : '').join('')}</div></div>`; };
+  h += `<div class="bars" style="margin-top:14px">${stack(pre, PRE_ITEMS, 'Sebelum')}${stack(post, POST_ITEMS, 'Sesudah')}${stack(del, POST_ITEMS, 'Tes tunda')}</div>`;
+  if (!has(pre) && !has(post)) h = '<div class="note">Kerjakan tes diagnostik di Tahap 1 dan tes akhir di atas untuk melihat perbandingan.</div>';
+  else if (has(pre) && has(post)){ const sc = (q, items) => q.ans.filter((a, i) => a.c === items[i].a).length; const m1 = q => q.ans.filter((a, i) => catOf(a, i < 5 ? (q === pre ? PRE_ITEMS[i] : POST_ITEMS[i]) : null) === 'miskonsepsi').length;
+    const s1 = sc(pre, PRE_ITEMS), s2 = sc(post, POST_ITEMS), g_ = s1 < 5 ? (s2 - s1)/(5 - s1) : null;
+    h += `<div class="note blue" style="margin-top:12px">Skor benar: <b>${s1}/5 → ${s2}/5</b>${g_ != null ? ` · N-gain = <b>${fmt(g_, 2)}</b> (${g_ >= .7 ? 'tinggi' : g_ >= .3 ? 'sedang' : 'rendah'})` : ''} · Miskonsepsi: <b>${m1(pre)} → ${m1(post)}</b> butir.</div>`; }
+  el.innerHTML = h;
+  summary();
+}
+(function(){
+  const d = $('#delayDate'); if (!S.delayDate){ const t = new Date(); t.setDate(t.getDate() + 14); S.delayDate = t.toISOString().slice(0, 10); save(); }
+  d.value = S.delayDate; const info = () => { const days = Math.round((new Date(S.delayDate) - new Date(new Date().toISOString().slice(0, 10)))/864e5); $('#delayInfo').textContent = days > 0 ? `${days} hari lagi (saran: 14–28 hari setelah tes akhir).` : 'Sudah waktunya tes tunda.'; };
+  d.onchange = () => { S.delayDate = d.value; save(); info(); }; info();
+  let qd = null;
+  const show = () => { $('#quizDelay').style.display = 'block'; if (!qd) qd = Quiz($('#quizDelay'), POST_ITEMS, 'qDelay', {reveal:true, shuffle:true, onDone: () => updateCompare()}); };
+  $('#delayStart').onclick = show; if (S.qDelay) show();
+})();
+function summary(){
+  const L = [];
+  L.push('RINGKASAN LAB GAYA & GERAK');
+  L.push('Gambar awal: ' + (S.pre ? describeDrawing(S.pre).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '—'));
+  L.push('Gambar revisi: ' + (S.post ? describeDrawing(S.post).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '—'));
+  L.push('Prediksi: ' + (S.pred && S.pred.t1 ? S.pred.t1 : '—'));
+  const t = S.txt || {};
+  L.push('Eksplanasi: ' + (t.expl1 || '—'));
+  L.push('Refleksi — Dulu: ' + (t.j1 || '—') + ' | Sekarang: ' + (t.j2 || '—') + ' | Bukti: ' + (t.j3 || '—'));
+  const q = (k, items, name) => { const x = S[k]; if (!x || !x.done) return; L.push(name + ': ' + x.ans.map((a, i) => `${i + 1}${'ABCD'[a.c]}(CRI ${a.cri}, ${CAT_L[catOf(a, items[i])]})`).join('; ')); };
+  q('qPre', PRE_ITEMS, 'Tes awal'); q('qPost', POST_ITEMS, 'Tes akhir'); q('qDelay', POST_ITEMS, 'Tes tunda');
+  if (S.pi){ L.push('Peer Instruction: ' + S.pi.map((p, i) => `${i + 1}: ${p.r1 == null ? '-' : 'ABCD'[p.r1]}→${p.r2 == null ? '-' : 'ABCD'[p.r2]}`).join(', ')); }
+  if (t.dimasTxt) L.push('Penjelasan kasus Dimas: ' + t.dimasTxt);
+  $('#sumTxt').value = L.join('\n');
+}
+$('#copySum').onclick = () => { summary(); const v = $('#sumTxt').value; const done = () => $('#copyMsg').textContent = 'Tersalin.'; try { navigator.clipboard.writeText(v).then(done, () => { $('#sumTxt').select(); $('#copyMsg').textContent = 'Teks sudah dipilih; tekan Ctrl+C.'; }); } catch(e){ $('#sumTxt').select(); $('#copyMsg').textContent = 'Teks sudah dipilih; tekan Ctrl+C.'; } };
+let resetArm = false;
+$('#resetAll').onclick = e => { if (!resetArm){ resetArm = true; e.target.textContent = 'Klik sekali lagi untuk menghapus'; setTimeout(() => { resetArm = false; e.target.textContent = 'Hapus semua data di perangkat ini'; }, 3000); return; } try { localStorage.removeItem('labNewton_v1'); } catch(_){} S = {}; location.hash = 'tahap-1'; location.reload(); };
+
+/* mulai */
+document.fonts && document.fonts.ready.then(() => { preDrawer.render(); });
+route();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
